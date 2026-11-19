@@ -27,7 +27,12 @@ const Core=require("../public/taskboard-core.js");
         url:articleUrl,department:"人工智能学院",department_id:"zju-ai",school:"浙江大学",
         category:"博士招生",topics:["admissions"],source_id:"zju-ai-admissions",
         published_at:start,excerpt:"博士招生条件与申请办法以官方原文为准。",
-        date_candidates:[{value:deadline+"T20:00",context:"研究生网上报名时间可能涉及的日期，仅为线索",verified:false}]}]
+        date_candidates:[{value:deadline+"T20:00",context:"研究生网上报名时间可能涉及的日期，仅为线索",verified:false}]},
+        {id:"notice_scholar_2",title:"其他学院研究生奖学金公开申报通知",
+          url:"https://mse.zju.edu.cn/2026/1119/c51031a3229169/page.htm",
+          department:"材料学院",department_id:"zju-mse",school:"浙江大学",
+          category:"奖助",topics:["scholarships"],source_id:"zju-mse-student",
+          published_at:start,excerpt:"材料学院奖学金信息需核对校方原文。",date_candidates:[]} ]
     };
     const errors=[];
     const page=await browser.newPage({viewport:{width:1360,height:900},acceptDownloads:true});
@@ -35,8 +40,21 @@ const Core=require("../public/taskboard-core.js");
     await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
     await page.goto("http://127.0.0.1:8881/");
     await page.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="1 条");
-    // Notice link still points to official website, not internal page.
+    // First viewport is the actionable campus inbox, not an idle dashboard/sidebar.
+    assert.equal(await page.locator("#feedView").isVisible(),true);
+    assert.equal(await page.locator("#detailPanel").count(),0);
+    assert.equal(await page.locator(".metric-grid").count(),0);
+    // Notice link remains primary and points to the official school site.
     assert.equal(await page.locator(".notice-main-link").first().getAttribute("href"),articleUrl);
+    assert.equal(await page.locator(".notice-main-link").first().getAttribute("target"),"_blank");
+    // A cross-college topic is a UNION with the student’s followed department.
+    await page.locator("#editTopFocus").click();
+    await page.locator('input[name="topic"][value="scholarships"]').check();
+    await page.locator("#followForm .primary-button").click();
+    assert.equal(await page.locator("#resultCount").innerText(),"2 条");
+    const visibleLabels=await page.locator(".notice-row h3").allTextContents();
+    assert.ok(visibleLabels.some(x=>x.includes("博士")));
+    assert.ok(visibleLabels.some(x=>x.includes("奖学金")));
     await page.locator('[data-view="progress"]').click();
     assert.match(await page.locator("#candidateList").innerText(),/未核对的日期线索/);
     assert.match(await page.locator("#progressList").innerText(),/还没有跟踪/);
@@ -69,7 +87,7 @@ const Core=require("../public/taskboard-core.js");
     await page.locator("#progressList .task-status").selectOption("done");
     assert.match(await page.locator("#progressList").innerText(),/已完成/);
     await page.reload();
-    await page.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="1 条");
+    await page.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="2 条");
     await page.locator('[data-view="progress"]').click();
     assert.equal(await page.locator("#progressCount").innerText(),"1 项");
     assert.match(await page.locator("#progressList").innerText(),/已完成/);
