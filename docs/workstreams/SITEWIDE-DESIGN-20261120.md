@@ -1,32 +1,23 @@
-# Campus Agent 全站排版与年月日统一
+# Campus Agent 全站排版与年月日执行合同
 
-> Draft · TASK SPEC ONLY · Implementation: NOT DONE
-> Size: M · Confidence: medium
+维护者2026年11月20日要求所有网页真实消费本站标准。代码 owner 为 `public/styles.css` 与 `public/display-date.js`；长期规则见 `docs/design/STYLE.md`。跨仓库保留独立设计。
 
-## 目标与来源
+## 实施
 
-2026年11月20日维护者要求本站所有网页实际消费统一字体、字号、字重、行距、间距与年月日标准；各网站独立保留风格。实现、验收和合并 main 全部完成才交付。
+所有普通字体/字号/字重/行高、243个间距值与阅读/弹窗宽度已迁移至有限语义尺度，标题保持宋体、正文保持系统无衬线，通知和任务控件小字提高至12/14px。唯一HTML及其4个视图、今日看板和3个对话框共用此owner；service worker新版shell包含显示函数，离线页面同样引用。
 
-## 事实与唯一归属
+日期公共边界被通知、检查时间、申请窗口和候选线索调用；完整中文日期年月日，部分日期不填造。瞬时信息保留SGT(UTC+8)和跨年边界；机器日期、未经核实线索与用户确认截止日仍分开。taskboard-core.js、api/chat.js、Vercel CSP/鉴权与外部采集仓不变。
 
-已有 public/styles.css 颜色 owner，但文字/间距尚硬编码；formatDay 使用点号，sgt 缺年份，taskboard 自行替换。#6/#7/#8 仅任务规格；#7 后续 UI 必须消费本工作线 owner。
+## 必须通过的交付标准
 
-public/styles.css 的语义 tokens；docs/design/STYLE.md 真实规则；公共日历日期/时间显示能力与 app.js/taskboard.js 调用方。
+- 全部 public HTML 自动枚举且实际 stylesheet/body/spacing消费者被检查；添加孤立页面或 raw calc/混合负数样式会失败。
+- 原7个日期/任务/ICS单测与新2组显示精度/负例全部通过。
+- 两引擎×1440/440/390px全视图与对话框，无页面横向溢出或可见文字意外裁切；扰动字体、字号、行距、间距与宽度，真实消费者改变且恢复，宽度必须实际几何改变。
+- 任务创建仍需明确核对；Today只含已确认任务；状态手动改变且刷新持久化；旧ICS与Google一次性模板smoke保留。
+- 当前head CI通过、人工看截图后Ready并合并main，读回merge SHA；Vercel protected production身份另外核对，不把代码合并当已上线。
 
-## 实施和验收
+## 本地证据及尚待执行
 
-- [ ] 全站共用一个语义 typography/spacing owner；重复活动定义真正迁移，必要例外按正文/图表/代码/演示/打印等角色记录。
-- [ ] 真实 build 或路由清单覆盖每个页面/视图；不仅查链接存在，还检查生效字体、字号和间距。新增漏接页面必须使检查失败。
-- [ ] 完整日期按年月日：中文 YYYY年M月D日，英文 YYYY-MM-DD；仅年/月精度不得补造；timestamp 带明确时区。机器字段/URL/代码/证据保持原样。
-- [ ] 保留 user-confirmed deadlines、SGT 日期边界、ICS exclusive end、浏览器本地完成状态和 BYOK 边界；不改数据采集仓，不关闭 Vercel Authentication。
-- [ ] node --test tests/taskboard-core.test.cjs；改动 JS syntax checks；现有 browser smoke 适配云端并覆盖 feed/sources/chat/Progress/Today/对话框，桌面与440×956无溢出。
-- [ ] 现有功能/隐私/科学门禁保持有效；加入漏接样式/非标准日期负例；当前候选证据通过后 Ready 并合并 main，读回 SHA。
-- [ ] 发布状态和源码合并分别核实，不拿 PR 创建或 provider READY 代替页面验收。
+`npm run check` PASS（9个测试；1 HTML及全部源owner/日期消费者检查）；`git diff --check` PASS。Playwright 6个全流程案例（每例全部视图）与原浏览器smoke已接现有checks.yml。云执行器不提供可运行Chromium，本地不宣称browser PASS；须以候选正式CI结果和截图收束。原数据/核心任务运算字节比对保留。
 
-## 执行与恢复
-
-单一写入者，按总优先级逐站推进；已获实现、验证和合并授权。保留本站 provider 与访问保护。下一步读取真实 source owner、依赖和生成输出。回退为本 PR 的逆向变更。
-
-## 证据
-
-仅合同已创建；实现 NOT DONE；构建/浏览器 NOT RUN。实施完成后补命令、结果、覆盖数及真实证据链接。
+回退为本PR逆向改动；实现、测试、合并与既有部署权限沿用本任务授权。

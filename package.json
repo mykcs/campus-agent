@@ -1,0 +1,12 @@
+{
+  "name": "campus-agent",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "check": "node --check public/app.js && node --check public/taskboard.js && node --check public/display-date.js && node --check public/taskboard-core.js && node --check api/chat.js && node --test tests/taskboard-core.test.cjs tests/site-design.test.cjs && node scripts/check-site-design.cjs",
+    "test:browser": "playwright test && node tests/taskboard-browser.cjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

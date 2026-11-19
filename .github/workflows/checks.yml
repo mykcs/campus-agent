@@ -24,7 +24,31 @@ jobs:
           node --check public/taskboard-core.js
           node --check public/taskboard.js
           node --check api/chat.js
-      - name: Deterministic date and ICS tests
-        run: node --test tests/taskboard-core.test.cjs
+      - name: Source presentation, calendar precision, and existing ICS contracts
+        run: npm run check
       - name: Validate Vercel JSON
         run: python3 -m json.tool vercel.json >/dev/null
+
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install pinned test dependencies
+        run: npm ci
+      - name: Install acceptance browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Every route and view, actual shared styles and task regressions
+        run: npm run test:browser
+      - name: Keep exact candidate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: campus-design-${{ github.sha }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 3
