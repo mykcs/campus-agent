@@ -19,6 +19,7 @@ async function audit(page){
       if(!text.textContent.trim()||!el||el.closest('script,style,[hidden],dialog:not([open]),option'))continue;
       const style=getComputedStyle(el),box=el.getBoundingClientRect();
       if(!box.width||!box.height||style.visibility!=='visible'||style.fontSize==='0px')continue;
+      if(parseFloat(style.fontSize)<11.99)errors.push({kind:'readability',tag:el.tagName,size:style.fontSize});
       const sample={tag:el.tagName,class:el.className,text:text.textContent.trim().slice(0,70),size:style.fontSize,leading:style.lineHeight,weight:style.fontWeight};
       if(!families.includes(style.fontFamily)||!allowed.some(size=>Math.abs(size-parseFloat(style.fontSize))<.1)||!['400','500','600','700','800'].includes(style.fontWeight))errors.push({kind:'type',...sample});
       const leading=parseFloat(style.lineHeight)/parseFloat(style.fontSize);
@@ -30,6 +31,10 @@ async function audit(page){
         const clipX=['hidden','clip'].includes(css.overflowX),clipY=['hidden','clip'].includes(css.overflowY);
         if([...range.getClientRects()].some(r=>(clipX&&(r.left<rect.left-2||r.right>rect.right+2))||(clipY&&(r.top<rect.top-2||r.bottom>rect.bottom+2)))){errors.push({kind:'clip',...sample});break;}
       }
+    }
+    for(const el of document.querySelectorAll('input:not([type=checkbox]):not([type=radio]),select,textarea')){
+      if(el.closest('[hidden],dialog:not([open])')||!el.getBoundingClientRect().width)continue;
+      const style=getComputedStyle(el);if(parseFloat(style.fontSize)<13.99||!allowed.some(size=>Math.abs(size-parseFloat(style.fontSize))<.1)||!families.includes(style.fontFamily))errors.push({kind:'control',id:el.id,size:style.fontSize,font:style.fontFamily});
     }
     return {version:root.getPropertyValue('--campus-design-version').trim(),body:{size:body.fontSize,line:body.lineHeight},overflow:document.documentElement.scrollWidth-innerWidth,errors};
   });
@@ -66,6 +71,9 @@ for(const route of routes)for(const width of [1440,440,390])test(`${route} ${wid
     probes.push(await perturb(page,'.view:not([hidden]) .page-desc','--text-caption','17px','fontSize'));
     await page.screenshot({path:info.outputPath(view+'.png'),fullPage:true});
   }
+  probes.push(await perturb(page,'.view:not([hidden]) h1','--font-heading','monospace','fontFamily'));
+  probes.push(await perturb(page,'.view:not([hidden]) h1','--weight-semibold','500','fontWeight'));
+  probes.push(await perturb(page,'.view:not([hidden]) h1','--leading-heading','1.7','lineHeight'));
   probes.push(await perturb(page,'body','--font-body','monospace','fontFamily'));
   probes.push(await perturb(page,'body','--leading-body','2','lineHeight'));
   probes.push(await perturb(page,'.main','--space-unit','.3rem','paddingLeft'));
@@ -83,6 +91,7 @@ for(const route of routes)for(const width of [1440,440,390])test(`${route} ${wid
   await expect(page.locator('#candidateList')).toContainText(Display.calendar(deadline));
   await page.locator('#candidateList .task-link-button').first().click();await expect(page.locator('#taskDialog')).toBeVisible();
   await expect(page.locator('#taskVerified')).not.toBeChecked();await expect(page.locator('#taskDueDate')).toHaveValue(deadline);
+  probes.push(await perturb(page,'#taskDialog','--width-task-dialog','18rem','maxWidth'));
   states.push({name:'task-dialog',measurement:await audit(page)});await page.screenshot({path:info.outputPath('task-dialog.png'),fullPage:true});
   await page.locator('#taskVerified').check();await page.locator('#taskForm button[type="submit"]').click();
   await expect(page.locator('#progressCount')).toHaveText('1 项');await expect(page.locator('#todayCount')).toHaveText('1 项');

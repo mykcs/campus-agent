@@ -23,6 +23,7 @@
     const raw=String(value||"");
     // Date-only values never enter Date parsing; an instant needs an explicit offset.
     if(!/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(raw))return "未确认";
+    if(calendar(raw.slice(0,10))==="日期待核对")return "未确认";
     const date=new Date(raw);
     if(!Number.isFinite(date.getTime()))return "未确认";
     const parts=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Singapore",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(date).map(part=>[part.type,part.value]));

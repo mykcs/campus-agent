@@ -146,7 +146,7 @@ h1{font-family:var(--font-heading);font-size:var(--text-title);font-weight:var(-
 .task-notes{font-size:var(--text-meta);color:#9da79d;max-width:var(--width-reading);line-height:var(--leading-compact)}
 .deadline-label{font-size:var(--text-meta);padding:var(--space-4) var(--space-8);border-radius:6px;background:#eef5ee;color:#4e8263;white-space:nowrap}
 .deadline-label.today,.deadline-label.overdue{background:#fff0e7;color:#b46e45}.deadline-label.done{background:#eaf4ed;color:#458965}
-.task-status{color:#587361;border:1px solid #e1eae1;border-radius:8px;background:#fff;font-size:var(--text-meta);min-height:33px;padding:0 var(--space-8);max-width:var(--width-status);flex:none}
+.task-status{color:#587361;border:1px solid #e1eae1;border-radius:8px;background:#fff;font-size:var(--text-caption);min-height:33px;padding:0 var(--space-8);max-width:var(--width-status);flex:none}
 .progress-card{padding:var(--space-20) var(--space-20);border:1px solid #e5ebe3;border-radius:11px;background:#fff}
 .progress-card.task-is-done{background:#fbfcfa}
 .progress-card-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-12)}

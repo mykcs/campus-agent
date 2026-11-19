@@ -12,7 +12,7 @@ test('calendar display keeps precision and the SGT year boundary without changin
     assert.equal(Display.instant('2026-12-31T15:59:00Z'),'2026年12月31日 23:59 SGT (UTC+8)');
   }
   for(const bad of ['2026-02-29','2026-13-01','2026-06-31','06/07/2026','',undefined])assert.equal(Display.calendar(bad),'日期待核对');
-  for(const bad of ['2026-06-07','2026-06-07T01:00:00','garbage'])assert.equal(Display.instant(bad),'未确认');
+  for(const bad of ['2026-06-07','2026-06-07T01:00:00','2026-02-29T12:00:00Z','2026-06-31T00:00:00+08:00','garbage'])assert.equal(Display.instant(bad),'未确认');
   assert.equal(Display.sourceDay('2026-06-07T01:30:00Z'),'2026年6月7日');
 });
 test('guard rejects detached routes and raw mixed expressions while keeping the narrow accessible icon treatment',()=>{
@@ -20,6 +20,6 @@ test('guard rejects detached routes and raw mixed expressions while keeping the 
   assert.deepEqual(inspectHtml(html,css),[]);
   assert.ok(inspectHtml(html.replace('/styles.css','/isolated.css'),css).length);
   assert.ok(inspectHtml(html,':root{--campus-design-version:1}').length);
-  for(const bad of ['.article{font-size:9px}','.article{line-height:1.123}','.article{padding:calc(var(--space-4) + 17px)}','.article{margin:var(--space-4) -7px}','.article{max-width:999px}','.article{font-size:0}'])assert.ok(styleViolations(bad).length,bad);
+  for(const bad of ['.article{font-size:9px}','.article{line-height:1.123}','.article{padding:calc(var(--space-4) + 17px)}','.article{margin:var(--space-4) -7px}','.article{max-width:999px}','.article{font-size:0}','.article{font-size:calc(var(--text-body) + 9px)}','.article{max-width:77ch}','.article{font-size:var(--text-missing)}',':root{--text-body:8px}'])assert.ok(styleViolations(bad).length,bad);
   assert.deepEqual(styleViolations('.article{font-size:var(--text-body);padding:var(--space-16)}.ask-one{font-size:0}'),[]);
 });

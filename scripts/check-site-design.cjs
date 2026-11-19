@@ -1,15 +1,20 @@
 const fs=require('node:fs'),path=require('node:path');
 const filesBelow=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?filesBelow(path.join(dir,entry.name)):[path.join(dir,entry.name)]).sort();
-function styleViolations(css){
+const sharedCss=fs.readFileSync(path.join(__dirname,'../public/styles.css'),'utf8');
+const sharedTokens=new Set([...sharedCss.matchAll(/(--[\w-]+)\s*:/g)].map(match=>match[1]));
+function styleViolations(css,isOwner=false){
   const errors=[];
   for(const rule of css.replace(/\/\*[\s\S]*?\*\//g,'').matchAll(/([^{}]+)\{([^{}]*)\}/g)){
     const selector=rule[1].trim();
+    if(!isOwner&&/--(?:font|text|weight|leading|space|width|dialog-gutter)[\w-]*\s*:/.test(rule[2]))errors.push('Shared roles may only be defined by public/styles.css');
     for(const match of rule[2].matchAll(/(?:^|;)\s*(font-size|font-family|font-weight|line-height|font|max-width|margin(?:-[\w]+)?|padding(?:-[\w]+)?|gap|row-gap|column-gap)\s*:\s*([^;]+)/g)){
       const [,property,raw]=match,value=raw.trim();
       const iconOnly=property==='font-size'&&value==='0'&&['.sync-indicator','.ask-one','.notice-row-actions .task-one'].includes(selector);
       const rootRelative=property==='font-size'&&value==='100%'&&selector===':root';
-      if(/font|line-height/.test(property)&&!iconOnly&&!rootRelative&&!value.includes('var(--')&&value!=='inherit')errors.push(`${selector} ${property}:${value}`);
-      if(/max-width|margin|padding|gap/.test(property)&&/-?[\d.]+(?:px|rem|em)\b/.test(value))errors.push(`${selector} ${property}:${value}`);
+      const prefix={'font-family':'font-','font-size':'text-','font-weight':'weight-','line-height':'leading-'}[property];
+      const role=/^var\((--[\w-]+)\)$/.exec(value);
+      if(/font|line-height/.test(property)&&!iconOnly&&!rootRelative&&value!=='inherit'&&(!prefix||!role||!role[1].startsWith('--'+prefix)||!sharedTokens.has(role[1])))errors.push(`${selector} ${property}:${value}`);
+      if(/max-width|margin|padding|gap/.test(property)&&/-?[\d.]+(?:px|rem|em|ch|ex|pt|cm|mm|in)\b/.test(value))errors.push(`${selector} ${property}:${value}`);
     }
   }
   return errors;
@@ -25,7 +30,7 @@ function inspectHtml(html,css){
 }
 function check(){
   const css=fs.readFileSync('public/styles.css','utf8');
-  const errors=styleViolations(css),htmls=filesBelow('public').filter(file=>file.endsWith('.html'));
+  const errors=styleViolations(css,true),htmls=filesBelow('public').filter(file=>file.endsWith('.html'));
   if(!htmls.length)throw Error('No HTML routes');
   for(const file of htmls)errors.push(...inspectHtml(fs.readFileSync(file,'utf8'),css).map(error=>file+': '+error));
   for(const file of filesBelow('public').filter(file=>file.endsWith('.css')&&file!=='public/styles.css'))errors.push(...styleViolations(fs.readFileSync(file,'utf8')).map(error=>file+': '+error));
