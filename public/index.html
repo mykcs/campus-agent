@@ -3,116 +3,110 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f7f6f2">
-  <meta name="description" content="Campus Agent：公开大学通知聚合、官方来源检索和用户自带模型的校园 AI 助手。">
-  <title>Campus Agent · 校园通知雷达</title>
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#fafaf8">
+  <meta name="description" content="按照自己关注的学院和主题阅读大学官方公开通知，并使用自己的 AI 模型查找信息。">
+  <title>Campus Agent — 你的校园信息</title>
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <div class="layout">
-    <aside class="sidebar" aria-label="主导航">
-      <a href="/" class="brand" aria-label="Campus Agent 首页">
-        <span class="brand-mark" aria-hidden="true">◈</span>
-        <span class="brand-copy"><strong>Campus Agent</strong><small>UNIVERSITY INTELLIGENCE</small></span>
-      </a>
-      <div class="side-label">工作区</div>
-      <nav id="mainNav" class="main-nav">
-        <button type="button" class="nav-link is-active" data-view="overview"><span class="nav-glyph">▦</span>雷达概览</button>
-        <button type="button" class="nav-link" data-view="notices"><span class="nav-glyph">▤</span>公开通知<span class="nav-number" id="navCount">—</span></button>
-        <button type="button" class="nav-link" data-view="ask"><span class="nav-glyph">✳</span>校园问答</button>
-      </nav>
-      <div class="side-label schools-label">已接入的学校</div>
-      <div class="school-row is-selected"><span class="school-dot"></span><span>浙江大学<small>人工智能学院</small></span><span class="tiny-check">✓</span></div>
-      <div class="school-row muted"><span class="school-dot gray"></span><span>MIT<small>计划接入</small></span></div>
-      <div class="school-row muted"><span class="school-dot gray"></span><span>清华大学<small>计划接入</small></span></div>
-      <div class="sidebar-bottom">
-        <div class="trust-card"><span class="trust-icon">↗</span><div><strong>只读取公开资料</strong><span>不需要学校账号或 VPN</span></div></div>
-        <button type="button" class="nav-link settings-link" id="settingsOpen"><span class="nav-glyph">⚙</span>模型与隐私设置<span class="settings-pill" id="settingsState">未配置</span></button>
-      </div>
-    </aside>
-
-    <div class="main-column">
-      <header class="topbar">
-        <span class="breadcrumb">Campus Agent <span>/</span> <strong id="crumb">雷达概览</strong></span>
-        <div class="top-actions"><span class="small-dot"></span><span id="topStatus">正在检查公开数据…</span><button id="refreshBtn" type="button" class="icon-button" aria-label="重新读取公开通知" title="刷新公开通知">↻</button></div>
-      </header>
-
-      <main id="mainContent">
-        <section id="overviewView" class="view">
-          <div class="page-eyebrow"><span class="eyebrow-line"></span> KNOW WHAT MATTERS</div>
-          <div class="hero">
-            <div>
-              <h1>不再错过，<em>重要的校园消息。</em></h1>
-              <p>把散落在学校、学院和行政部门的公开通知汇集在一起。先发现，再读懂，最后决定下一步。</p>
-            </div>
-            <div class="hero-figure" aria-hidden="true"><span class="ring ring-a"></span><span class="ring ring-b"></span><span class="ring ring-c"></span><span class="radar-core">✳</span></div>
-          </div>
-          <div class="metric-grid">
-            <div class="metric"><span>已收录公告</span><strong id="metricNotices">—</strong><small>目前仅覆盖 1 个学院</small></div>
-            <div class="metric"><span>公开来源</span><strong id="metricSources">1</strong><small>已核实免登录</small></div>
-            <div class="metric"><span>公告附件</span><strong id="metricAttachments">—</strong><small>跳转官方文档</small></div>
-            <div class="metric"><span>最新检查</span><strong id="metricChecked" class="metric-time">—</strong><small id="metricHealth">等待数据</small></div>
-          </div>
-          <div class="section-head"><div><span class="section-eyebrow">THE FEED</span><h2>最近发布</h2></div><button type="button" class="text-action" id="seeAll">查看所有通知 <span>↗</span></button></div>
-          <div id="recentNotices" class="notice-stack"><div class="empty-state">正在读取公开通知…</div></div>
-          <div class="source-box">
-            <div class="source-head"><div><span class="source-symbol">Z</span><span><strong>浙江大学 · 人工智能学院</strong><small>招生通知 / 官方栏目</small></span></div><span class="source-state" id="sourceState">检查中</span></div>
-            <div class="source-bottom"><span id="sourceUpdated">尚未获得最近检查时间</span><a href="https://ai.zju.edu.cn/zstz/list1.htm" target="_blank" rel="noopener noreferrer">打开官方栏目 ↗</a></div>
-          </div>
-        </section>
-
-        <section id="noticesView" class="view" hidden>
-          <div class="page-eyebrow"><span class="eyebrow-line"></span> OFFICIAL SOURCES</div>
-          <div class="page-heading"><h1>公开通知</h1><p>这里列出的信息来自校方公开网站。每条都保留原始链接，日期线索需结合公告核对。</p></div>
-          <div class="filter-bar">
-            <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="搜索博士、奖学金、报名、附件…" autocomplete="off" aria-label="搜索公开通知"></label>
-            <select id="categorySelect" aria-label="通知类别"><option value="">所有类别</option></select>
-            <button id="sortBtn" type="button" class="sort-btn" aria-pressed="false">最新优先 ↓</button>
-          </div>
-          <div class="list-meta"><span id="resultCount">正在加载…</span><span>仅显示已接入的公开来源</span></div>
-          <div id="allNotices" class="notice-stack"><div class="empty-state">正在获取通知…</div></div>
-        </section>
-
-        <section id="askView" class="view" hidden>
-          <div class="page-eyebrow"><span class="eyebrow-line"></span> ASK THE CAMPUS</div>
-          <div class="page-heading"><h1>问问校园 Agent<span class="star"> ✳</span></h1><p>先检索已收录的官方通知；配置自己的 Kimi 或兼容模型后，可获得带来源的解释。</p></div>
-          <div class="assistant-panel">
-            <div class="assistant-header"><span class="assistant-mark">✳</span><div><strong>公开资料问答</strong><small id="assistantProvider">无需 API Key · 本地检索</small></div><button type="button" class="outlined-small" id="assistantSettings">接入我的模型 ↗</button></div>
-            <div id="chatLog" class="chat-log" aria-live="polite">
-              <div class="chat-message from-agent"><span class="message-label">CAMPUS AGENT</span><div>你好！我可以查找已收录的浙大人工智能学院招生通知。你也可以在设置中接入自己的模型，让我解释官方内容。<br><br>所有正式申请条件和截止时间，请以学校原文为准。</div></div>
-              <div class="suggestions"><button type="button" class="suggestion" data-question="2027年博士招生有哪些官方通知？">2027年博士招生有哪些通知？ ↗</button><button type="button" class="suggestion" data-question="博士报名截止日期和申请材料在哪里看？">博士报名与申请材料 ↗</button><button type="button" class="suggestion" data-question="有哪些申请考核实施细则？">申请考核实施细则 ↗</button></div>
-            </div>
-            <form id="chatForm" class="composer"><input id="chatInput" autocomplete="off" maxlength="1600" placeholder="问一个具体问题，例如：2027 博士报名需要准备什么？" aria-label="输入校园问题" required><button id="sendBtn" type="submit">发送 <span>↑</span></button></form>
-            <p class="chat-disclaimer">未配置模型时仅做关键词检索。配置模型后，内容会发送给你选择的模型服务，不代表校方意见。</p>
-          </div>
-        </section>
-      </main>
-      <footer class="footer"><span>Campus Agent · 独立开源项目，非学校官方服务</span><div><a href="https://github.com/mykcs/campus-agent" target="_blank" rel="noopener noreferrer">GitHub ↗</a><span>·</span><a href="https://github.com/mykcs/campus-agent-data" target="_blank" rel="noopener noreferrer">公开数据 ↗</a></div></footer>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Campus Agent 首页">
+      <span class="brand-symbol">✳</span><span>Campus <strong>Agent</strong></span>
+    </a>
+    <div class="side-label">工作区</div>
+    <nav class="side-nav" aria-label="网站导航">
+      <button type="button" class="nav-item active" data-view="feed"><span class="nav-icon">▤</span>我的动态 <span id="navCount" class="nav-count">—</span></button>
+      <button type="button" class="nav-item" data-view="ask"><span class="nav-icon">✳</span>校园问答</button>
+      <button type="button" class="nav-item" data-view="sources"><span class="nav-icon">▥</span>数据来源</button>
+    </nav>
+    <div class="focus-side">
+      <div class="focus-side-head"><span>我的关注</span><button id="editSideFocus" type="button" aria-label="编辑关注">编辑</button></div>
+      <div id="sideFollows" class="followed-pills"><span class="text-muted">尚未设置</span></div>
     </div>
-
-    <aside id="detailPanel" class="detail-panel" aria-label="通知详情">
-      <div class="detail-top"><span>NOTICE DETAIL</span><button type="button" class="icon-button detail-close" id="detailClose" aria-label="关闭详情">×</button></div>
-      <div id="detailContent" class="detail-placeholder"><div class="detail-sigil">✳</div><strong>选择一条通知</strong><p>在这里查看摘要、日期线索、原始公告和附件，不丢失阅读上下文。</p></div>
-      <div class="detail-tail"><span class="tiny-lock">▢</span>内容来自学校公开网页，不包含私人校园数据</div>
-    </aside>
+    <div class="sidebar-bottom">
+      <div class="independent"><span class="independent-dot"></span>仅使用公开的学校信息</div>
+      <button id="openModelSide" class="nav-item model-nav" type="button"><span class="nav-icon">⚙</span>模型设置 <span id="modelSideState" class="setting-state">可选</span></button>
+      <small>独立开源项目 · 非学校官方服务</small>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">Campus Agent <span class="breadcrumb-separator">/</span><strong id="currentViewName">我的动态</strong></div>
+      <div class="top-tools">
+        <span class="sync-indicator"><i id="syncDot"></i><span id="syncStatus">读取公开数据中…</span></span>
+        <button class="top-button" id="editTopFocus" type="button"> <span>◎</span> 管理关注</button>
+        <button id="reloadButton" type="button" class="icon-button" aria-label="刷新通知">↻</button>
+      </div>
+    </header>
+    <main class="main">
+      <section class="view" id="feedView">
+        <div class="eyebrow">YOUR CAMPUS, YOUR SIGNAL</div>
+        <div class="heading-line">
+          <div><h1>你的校园动态</h1><p class="page-desc">从官方公开渠道获取消息，只看你真正关心的学院与主题。</p></div>
+        </div>
+        <div class="search-line">
+          <label class="search-box"><span class="search-icon">⌕</span><input id="searchInput" type="search" autocomplete="off" placeholder="搜索通知、学院、奖学金、博士招生…" aria-label="搜索校园通知"></label>
+          <button class="follow-button" id="editFeedFocus" type="button"><span>✳</span> 设置我的关注</button>
+        </div>
+        <div class="focus-summary" id="followSummary"><span class="loading">正在加载我的关注…</span></div>
+        <div class="feed-switch" role="group" aria-label="通知范围">
+          <button type="button" data-feed="follow" class="feed-tab selected" aria-pressed="true">我的关注 <span id="followCount"></span></button>
+          <button type="button" data-feed="all" class="feed-tab" aria-pressed="false">全部公开通知</button>
+        </div>
+        <div id="categoryFilters" class="category-filters" aria-label="通知类别"></div>
+        <div class="section-title">
+          <div><h2 id="listTitle">最新通知</h2><span id="resultCount" class="result-count"></span></div>
+          <button id="sortButton" class="sort-button" type="button">最新优先 ↓</button>
+        </div>
+        <div id="noticeFeed" class="notice-feed"><div class="empty">正在载入官方通知…</div></div>
+        <div class="feed-foot"><span id="dataAsOf">正在检查数据时间</span><button type="button" id="viewSourcesLink">查看来源和覆盖范围 ↗</button></div>
+      </section>
+      <section class="view" id="askView" hidden>
+        <div class="eyebrow">ASK CAMPUS AGENT</div>
+        <h1>问问校园 Agent</h1><p class="page-desc">先查公开来源；连接你自己的 Kimi 或其他模型后，可以进一步解读官方通知。</p>
+        <div class="chat-shell">
+          <div class="chat-top"><span class="chat-avatar">✳</span><div><strong>公开通知问答</strong><small id="assistantProvider">未配置模型 · 使用本地检索</small></div><button class="mini-button" id="openModelChat" type="button">接入我的模型 ↗</button></div>
+          <div id="chatLog" class="chat-log" aria-live="polite">
+            <div class="message agent-message"><small>Campus Agent</small><p>你好，我可以帮你从已收录的学校官方通知中找信息。没有接入模型时只检索标题、内容和官方链接；不会擅自认定你的申请资格。</p></div>
+          </div>
+          <div class="question-examples"><button type="button" data-question="浙江大学 2027 博士招生有哪些公告？">2027博士招生 ↗</button><button type="button" data-question="奖学金和资助通知有哪些？">奖学金通知 ↗</button></div>
+          <form id="chatForm" class="chat-form"><input id="chatInput" autocomplete="off" maxlength="1600" required placeholder="输入你的问题…"><button id="sendButton" type="submit">发送 ↗</button></form>
+          <p class="privacy-caption">AI 只使用你本次选择的模型服务；内容由学校原文决定。私有学生数据未接入。</p>
+        </div>
+      </section>
+      <section class="view" id="sourcesView" hidden>
+        <div class="eyebrow">PUBLIC SOURCE STATUS</div>
+        <h1>数据来源与覆盖范围</h1><p class="page-desc">每个来源都有自己的监测状态；暂未接入的学院不会被冒充为已经监控。</p>
+        <div id="sourceCards" class="source-list"><div class="empty">正在检查来源状态…</div></div>
+        <p class="source-disclaimer">部分大学页面无法稳定从校外访问。此产品只收录可公开访问的通知，不使用学生账号、统一身份认证或 WebVPN。数据可能延迟，正式申请请核对学校原文。</p>
+      </section>
+    </main>
+    <footer class="footer"><span>Campus Agent © 2026 · Independent & open source</span><span><a target="_blank" rel="noopener noreferrer" href="https://github.com/mykcs/campus-agent">网站源码 ↗</a><a target="_blank" rel="noopener noreferrer" href="https://github.com/mykcs/campus-agent-data">通知数据 ↗</a></span></footer>
   </div>
-
-  <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
-    <form method="dialog" class="settings-card" id="modelForm">
-      <div class="modal-top"><span class="page-eyebrow">YOUR OWN MODEL</span><button value="cancel" type="button" id="settingsClose" class="icon-button" aria-label="关闭">×</button></div>
-      <h2 id="settingsTitle">接入你的 AI 模型</h2>
-      <p class="modal-intro">像配置 CC Switch 一样，使用你自己的 API。我们不提供付费模型，也不代你充值。</p>
-      <div class="form-field"><label for="providerSelect">模型提供商</label><select id="providerSelect"><option value="kimi">Kimi / Moonshot AI</option><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="custom">自定义 OpenAI 兼容接口</option></select></div>
-      <div class="form-field"><label for="baseUrlInput">API Base URL</label><input id="baseUrlInput" type="url" inputmode="url" spellcheck="false" placeholder="https://api.example.com/v1" required></div>
-      <div class="form-field"><label for="modelInput">模型 ID</label><input id="modelInput" spellcheck="false" autocomplete="off" placeholder="填写提供商的模型 ID" required></div>
-      <div class="form-field"><label for="apiKeyInput">API Key</label><input id="apiKeyInput" type="password" spellcheck="false" autocomplete="off" placeholder="仅本次打开网页有效"></div>
-      <p class="privacy-note"><strong>密钥保护：</strong>API Key 只保存在当前网页内存中，不写入 GitHub、LocalStorage 或我们的数据库。内置模型通过 Vercel 一次性转发；自定义接口从浏览器直连，需服务商允许 CORS，且密钥会发送到你填写的地址。</p>
-      <div class="modal-actions"><button id="clearModel" type="button" class="secondary-button">清除配置</button><button type="submit" class="primary-button" value="save">保存本次会话</button></div>
-      <div id="settingsFeedback" class="form-feedback" aria-live="polite"></div>
-    </form>
-  </dialog>
+</div>
+<dialog id="followDialog" class="modal" aria-labelledby="followTitle">
+  <form id="followForm" method="dialog" class="modal-content">
+    <div class="modal-heading"><div><div class="eyebrow">PERSONALIZE YOUR FEED</div><h2 id="followTitle">我的关注</h2><p>选择学院的全部公开通知，并可以额外订阅跨学院的主题。设置仅保存在当前浏览器。</p></div><button type="button" class="close-button" id="closeFollow" aria-label="关闭关注设置">×</button></div>
+    <div class="modal-section"><div class="modal-section-head"><h3>学校与学院</h3><small>可同时选择多个</small></div><div class="school-label">浙江大学 <span>已开放来源优先</span></div><div id="departmentChoices" class="choice-list"></div><div class="unavailable-schools">MIT、清华大学的公开来源正在规划，尚未纳入监测。</div></div>
+    <div class="modal-section"><div class="modal-section-head"><h3>额外关注的主题</h3><small>跨学院查找</small></div><div id="topicChoices" class="choice-list"></div><p class="help-text">例如：即使只关注人工智能学院，也可以额外关注全校范围内已收录的奖学金消息。当前覆盖范围由实际来源决定。</p></div>
+    <div class="modal-actions"><button class="secondary-button" id="resetFocus" type="button">恢复默认</button><button class="primary-button" type="submit">保存关注</button></div>
+  </form>
+</dialog>
+<dialog id="modelDialog" class="modal model-modal" aria-labelledby="modelTitle">
+  <form id="modelForm" method="dialog" class="modal-content">
+    <div class="modal-heading"><div><div class="eyebrow">BRING YOUR OWN KEY</div><h2 id="modelTitle">接入自己的模型</h2><p>模型不是 Campus Agent 的后台服务。由你提供 API Key，按需调用。</p></div><button type="button" class="close-button" id="closeModel" aria-label="关闭模型设置">×</button></div>
+    <label class="field">提供商<select id="providerSelect"><option value="kimi">Kimi / Moonshot AI</option><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="custom">自定义 OpenAI 兼容 API</option></select></label>
+    <label class="field">API Base URL<input id="baseUrlInput" type="url" spellcheck="false" required placeholder="https://api.example.com/v1"></label>
+    <label class="field">模型 ID<input id="modelInput" spellcheck="false" autocomplete="off" required placeholder="例如：模型服务商提供的 ID"></label>
+    <label class="field">API Key<input id="apiKeyInput" type="password" spellcheck="false" autocomplete="off" placeholder="只在当前网页会话内使用"></label>
+    <p class="help-text">Key 不写入浏览器持久存储或公开仓库；默认服务由 Vercel 一次性转发，自定义接口由浏览器直连（需要支持 CORS）。模型服务可能收费。</p>
+    <div id="modelFeedback" class="form-feedback" role="status"></div>
+    <div class="modal-actions"><button type="button" id="clearModel" class="secondary-button">清除模型</button><button type="submit" class="primary-button">保存本次会话</button></div>
+  </form>
+</dialog>
 </body>
 </html>
