@@ -1,0 +1,17 @@
+{
+  "name": "Campus Agent · 校园通知雷达",
+  "short_name": "Campus Agent",
+  "description": "公开大学通知、招生和奖学金信息雷达",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#f7f6f2",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
