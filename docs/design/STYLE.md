@@ -24,3 +24,13 @@
 ## 体验回归
 
 `node tests/taskboard-browser.cjs` 检查任务路径与 iPhone 390px viewport；部署前保留截图人工审阅。不要对未测试的真实 iOS Calendar UI 做完成声明。
+
+## 2026-11-19｜从“首页乱”到读者任务优先（有边界的复盘）
+
+用户在旧版 Campus Agent 首页看到大幅雷达装饰、4 张系统指标卡和默认空白的右侧详情区后说：“但是我现在看了你的首页，感觉有点乱。”随后明确补充：通知标题应该直达官方链接，并允许同时关注人工智能、计算机、软件学院以及额外的奖学金主题（原话在私有 .agents 的 `RAW-20261119-984 U001/U002`，此处仅保留简短引文）。
+
+**旧反例**：把“抓到了多少条/多少附件”等机器指标与学生今天需处理的公告放在同一主视觉层；右侧没有选中通知时仍占面积。**已实施的校正**：2026-11-19 [PR #2](https://github.com/mykcs/campus-agent/pull/2) 将首页收敛成可搜索、可跟踪、可点原文的 Inbox；来源健康挪到“数据来源”视图；学院与主题以并集筛选。Progress 在 [PR #3](https://github.com/mykcs/campus-agent/pull/3) 作为另一有实际任务的工作页增加，没有让首页重新变成月历和仪表盘。
+
+**下次相邻任务**：新增一个校园通知来源或申请功能时，先回答“用户今天最可能需要点击哪一条信息”；校验默认首屏有公开通知与官方直达，内部抓取指标退到来源页，次要 AI/跟踪操作不能取代官方原文主链接。当前 `tests/taskboard-browser.cjs` 是本地交互回归；通过 CI/浏览器仅证明功能与布局的机械性质，**不证明用户已最终接受视觉，尚无独立读者审美验收**。
+
+**例外**：运维页面的首要任务本来就是系统健康，显示 KPI 卡片完全合理；本偏好只约束“学生第一入口/机会发现”类型的首页。此机制承接现有 [SHARED-DESIGN-001](https://github.com/mykcs/.agents/blob/main/docs/learning/shared/design/LEARNED_PREFERENCES.md#shared-design-001)、[003](https://github.com/mykcs/.agents/blob/main/docs/learning/shared/design/LEARNED_PREFERENCES.md#shared-design-003) 与 [007](https://github.com/mykcs/.agents/blob/main/docs/learning/shared/design/LEARNED_PREFERENCES.md#shared-design-007)，不另造通用设计规则或强制其他产品照搬 Linear 皮肤。
