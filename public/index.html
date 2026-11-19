@@ -10,6 +10,8 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
+  <script src="/taskboard-core.js" defer></script>
+  <script src="/taskboard.js" defer></script>
 </head>
 <body>
 <div class="app">
@@ -20,6 +22,7 @@
     <div class="side-label">工作区</div>
     <nav class="side-nav" aria-label="网站导航">
       <button type="button" class="nav-item active" data-view="feed"><span class="nav-icon">▤</span>我的动态 <span id="navCount" class="nav-count">—</span></button>
+      <button type="button" class="nav-item" data-view="progress"><span class="nav-icon">▰</span>进度与今日任务</button>
       <button type="button" class="nav-item" data-view="ask"><span class="nav-icon">✳</span>校园问答</button>
       <button type="button" class="nav-item" data-view="sources"><span class="nav-icon">▥</span>数据来源</button>
     </nav>
@@ -65,6 +68,21 @@
         <div id="noticeFeed" class="notice-feed"><div class="empty">正在载入官方通知…</div></div>
         <div class="feed-foot"><span id="dataAsOf">正在检查数据时间</span><button type="button" id="viewSourcesLink">查看来源和覆盖范围 ↗</button></div>
       </section>
+      <section class="view" id="progressView" hidden>
+        <div class="eyebrow">DEADLINES, NOT JUST DATES</div>
+        <h1>申请进度</h1>
+        <p class="page-desc">从官方通知形成待办，按发布日期到截止日期显示进度。日期经过你核对后才计入任务。</p>
+        <div class="task-controls"><button type="button" id="newProgressTask" class="follow-button">＋ 从通知创建任务</button><button type="button" id="exportTaskCalendar" class="task-secondary">↓ 导出我的日历 .ics</button></div>
+        <p class="task-footnote">这是一次性日历文件导出，不是持续同步的订阅链接。完成状态仅保存在当前浏览器；正式日期以学校原文为准。</p>
+        <div id="todaySummary" class="today-summary" aria-live="polite"></div>
+        <div class="task-heading"><div><span class="task-eyebrow">TODAY'S BOARD</span><h2>今日看板</h2></div><span id="todayCount" class="result-count"></span></div>
+        <div id="todayTaskBoard" class="today-board"></div>
+        <div class="task-heading"><div><span class="task-eyebrow">APPLICATION WINDOWS</span><h2>Progress · 申请窗口</h2></div><span id="progressCount" class="result-count"></span></div>
+        <div id="progressList" class="progress-list"></div>
+        <div class="task-heading"><div><span class="task-eyebrow">REQUIRES VERIFICATION</span><h2>发现的日期线索</h2></div></div>
+        <p class="task-footnote">自动提取的日期可能是开放日、报名开始日或其他安排。点击官方原文核对后，才能把它加入任务。</p>
+        <div id="candidateList" class="candidate-list"></div>
+      </section>
       <section class="view" id="askView" hidden>
         <div class="eyebrow">ASK CAMPUS AGENT</div>
         <h1>问问校园 Agent</h1><p class="page-desc">先查公开来源；连接你自己的 Kimi 或其他模型后，可以进一步解读官方通知。</p>
@@ -106,6 +124,17 @@
     <p class="help-text">Key 不写入浏览器持久存储或公开仓库；默认服务由 Vercel 一次性转发，自定义接口由浏览器直连（需要支持 CORS）。模型服务可能收费。</p>
     <div id="modelFeedback" class="form-feedback" role="status"></div>
     <div class="modal-actions"><button type="button" id="clearModel" class="secondary-button">清除模型</button><button type="submit" class="primary-button">保存本次会话</button></div>
+  </form>
+</dialog>
+<dialog id="taskDialog" class="modal task-modal" aria-labelledby="taskDialogTitle">
+  <form id="taskForm" class="modal-content" method="dialog">
+    <div class="modal-heading"><div><div class="eyebrow">PERSONAL APPLICATION TRACKER</div><h2 id="taskDialogTitle">跟踪官方通知</h2><p>核对官方原文后填写自己的截止日期。填写的信息不上传服务器。</p></div><button type="button" id="closeTaskDialog" class="close-button" aria-label="关闭任务">×</button></div>
+    <label class="field">官方通知<select id="taskNoticeSelect" required></select></label>
+    <div class="task-form-row"><label class="field">截止日期（SGT）<input id="taskDueDate" type="date" required></label><label class="field">截止时间（可选，SGT）<input id="taskDueTime" type="time"></label></div>
+    <label class="field">个人备注（可选）<input id="taskNotes" maxlength="300" placeholder="例如：先向学院确认推荐方式"></label>
+    <label class="task-confirm"><input type="checkbox" id="taskVerified" required><span>我已阅读官方通知并核对这个截止时间；知道它不代表系统自动确认申请资格。</span></label>
+    <p id="taskFormError" class="form-feedback" role="status"></p>
+    <div class="modal-actions"><button type="button" id="cancelTask" class="secondary-button">取消</button><button type="submit" class="primary-button">加入 Progress</button></div>
   </form>
 </dialog>
 </body>

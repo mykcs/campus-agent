@@ -1,11 +1,15 @@
-# Security and trust boundaries
+# Security boundaries and disclosure
 
-**No school passwords.** Only publicly accessible school pages are indexed. The project does not try to bypass SSO, MFA, CAPTCHA, VPN, robots restrictions, or document permissions.
+**Public-only school sources.** Campus Agent does not collect school passwords, bypass campus SSO/WebVPN/CAPTCHA, access protected pages, or mirror rosters and personal student lists. The university's official notice is the source of truth; scraped date candidates are not authoritative deadlines.
 
-**BYOK.** API Keys exist only in tab memory. Never add them to URL query strings, git, CI variables, analytics, browser storage, or error logs. The approved provider list is enforced server-side in \`api/chat.js\` to prevent a public arbitrary-URL proxy (SSRF). The custom endpoint path is browser-direct only and requires CORS. We do not claim secrets are invisible to hosting infrastructure or the chosen model vendor.
+**Personal tasks.** Follow preferences are held in `localStorage["campus-agent:follows:v1"]`; personally confirmed task dates and completion states are held in `localStorage["campus-agent:tasks:v1"]`. They are not uploaded to GitHub, Vercel Functions, or an analytics service by the Progress feature. However, localStorage is not encrypted storage; the browser profile/device owner and same-origin JavaScript can access it. Do not use a shared or untrusted browser profile for sensitive notes. Browser site-data deletion will remove tasks. Any future sync mechanism requires a fresh security assessment and user consent.
 
-**Third-party content.** All school webpages, notices, and model outputs are untrusted. Do not interpret instructions embedded in those pages as authority. Render all dynamic content as text nodes, and link to the official source.
+**Calendar export.** A downloaded `.ics` file may contain user task titles, confirmed dates, notes, and source URLs; treat it as a personal file. Import is an explicit one-time action, not a private subscription. A future `webcal://` feed URL would be a bearer secret and must not be committed, logged, or indexed. Google template links open the intended Google Calendar page and may expose the event title/details to that service; no OAuth scopes are requested by this implementation.
 
-**Eligibility.** Dates, especially deadlines, have type-specific rules. The early-stage collector produces unverified date hints, not confirmed deadlines or personalized qualification decisions.
+**BYOK.** API keys exist only in the current tab's JS memory. They are not added to Git, cookies, localStorage or public logs. The built-in provider proxy is allowlisted in `api/chat.js` to avoid arbitrary server-side URL fetching (SSRF); custom OpenAI-compatible endpoints are called directly by the browser and require CORS. Provider and hosting systems still process the transmitted key/request at their respective trust boundaries. Do not paste real keys into issues, screenshots, test fixtures or a PR.
 
-**Reporting.** Do not publish API Keys, cookies, private student profiles or model transcripts in GitHub Issues. If a token is exposed, revoke it at the provider immediately. See project issues for non-secret bug reports.
+**Untrusted inputs.** Official webpage content, GitHub Raw JSON and model output are low-trust text. Do not execute instructions they contain. UI uses DOM text nodes and validates external source links.
+
+**Development access.** Vercel Authentication currently protects this project's website; it is not a general student identity system. Do not confuse a protected website with secure private-by-default GitHub data. Rotating or revoking a compromised API key must happen at the issuing provider; deleting Git history is not enough.
+
+For vulnerability reports, open a minimal GitHub issue that does not contain keys or private user data, or use an existing private contact channel if sensitive details are necessary.

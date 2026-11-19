@@ -136,13 +136,14 @@ function renderFollows(){
 }
 function showView(view){
   state.view=view;
-  for(const x of ["feed","ask","sources"]){
+  for(const x of ["feed","progress","ask","sources"]){
     $(x+"View").hidden=x!==view;
   }
   document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===view));
-  $("currentViewName").textContent={feed:"我的动态",ask:"校园问答",sources:"数据来源"}[view]||"";
+  $("currentViewName").textContent={feed:"我的动态",progress:"进度与今日任务",ask:"校园问答",sources:"数据来源"}[view]||"";
   window.scrollTo({top:0,behavior:"instant"});
   if(view==="sources")renderSources();
+  if(view==="progress")window.CampusTaskBoard?.render();
 }
 function visibleNotices(){
   const isFollowing=state.feed==="follow";
@@ -179,6 +180,13 @@ function noticeRow(item){
   link.append(meta,element("h3","",item.title));
   link.setAttribute("aria-label","前往学校官方公告："+item.title);
   const actions=element("div","notice-row-actions");
+  const track=element("button","task-one","＋ 跟踪");
+  track.type="button";track.title="核对截止日期后跟踪此公告";
+  track.addEventListener("click",()=>{
+    showView("progress");
+    window.CampusTaskBoard?.openDialog({noticeId:item.id});
+  });
+  actions.append(track);
   const ask=element("button","ask-one","AI 解读");
   ask.type="button";ask.title="向校园 Agent 询问这条通知";
   ask.addEventListener("click",()=>{
@@ -252,6 +260,7 @@ async function loadData(){
     state.snapshot=parsed;
     state.notices=notices;
     state.fetchFailed=false;
+    window.CampusTaskBoard?.setNotices(state.notices);
     try{sessionStorage.setItem("campus-agent:last-public",JSON.stringify(parsed));}catch{}
   }catch(err){
     state.fetchFailed=true;
@@ -260,6 +269,7 @@ async function loadData(){
       if(Array.isArray(cached?.notices)){
         state.snapshot=cached;
         state.notices=cached.notices.filter(x=>x.title&&officialURL(x.url));
+        window.CampusTaskBoard?.setNotices(state.notices);
       }
     }catch{}
     console.warn("Public notice feed could not be refreshed: "+(err?.message||"unknown"));

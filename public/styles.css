@@ -106,3 +106,78 @@ h1{font-family:Georgia,"Songti SC","Noto Serif CJK SC",serif;font-size:35px;font
 .source-row{align-items:start}.source-right{flex-direction:column;gap:10px;align-items:end}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Application deadlines — a light-weight task workspace, separate from the reading inbox. */
+.task-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:28px}
+.task-controls .follow-button{height:42px}
+.task-secondary{height:42px;border:1px solid #e1e9e0;background:#fff;border-radius:9px;padding:0 14px;color:#4c785b;font-size:11px;font-weight:650}
+.task-secondary:hover{background:#f1f6f1}.task-secondary:disabled{opacity:.5;cursor:not-allowed}
+.task-footnote{font-size:11px;line-height:1.8;color:#96a297;margin:11px 0 0}
+.today-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid #e8eee6;border-radius:12px;margin-top:28px;background:#fff;overflow:hidden}
+.summary-stat{display:flex;flex-direction:column;gap:7px;padding:17px 20px;border-right:1px solid #e8eee6}.summary-stat:last-child{border-right:0}
+.summary-stat strong{font-size:25px;color:#304336;line-height:1.1;letter-spacing:-.7px}
+.summary-stat span{font-size:11px;color:#91a093}.summary-stat.urgent strong{color:#ba7647}.summary-stat.overdue strong{color:#af5b51}.summary-stat.complete strong{color:#4f8963}
+.task-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:43px 0 17px}
+.task-heading h2{margin:6px 0 0;font-size:16px;font-weight:700;letter-spacing:-.1px}
+.task-eyebrow{font-size:9px;letter-spacing:1.2px;font-weight:700;color:#879f89}
+.today-board,.progress-list,.candidate-list{display:grid;gap:10px}
+.task-empty{border:1px dashed #dce8df;background:#fbfcfa;border-radius:11px;padding:26px 22px;color:#839386;font-size:12px;line-height:1.7}
+.task-empty strong{display:block;color:#5e7561;font-size:13px;margin-bottom:6px}.task-empty p{margin:0;font-size:11px}
+.today-task{display:flex;align-items:center;gap:12px;padding:14px 17px;border:1px solid #e7ede7;border-radius:10px}
+.today-indicator{display:grid;place-items:center;background:#eff5ec;border-radius:50%;height:24px;width:24px;color:#527b61;flex:none;font-size:14px}
+.today-indicator.today,.today-indicator.overdue{background:#fdf2e9;color:#b77751}.today-indicator.done{background:#edf5ee;color:#3a8a5e}
+.today-body{min-width:0;flex:1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.task-title-col{min-width:0;display:flex;flex-direction:column;gap:6px}
+.task-title-link{font-size:12px;font-weight:690;line-height:1.55;display:block}.task-title-link:hover{color:#347650;text-decoration:underline;text-underline-offset:3px}
+.task-notes{font-size:10px;color:#9da79d;max-width:620px;line-height:1.55}
+.deadline-label{font-size:10px;padding:5px 8px;border-radius:6px;background:#eef5ee;color:#4e8263;white-space:nowrap}
+.deadline-label.today,.deadline-label.overdue{background:#fff0e7;color:#b46e45}.deadline-label.done{background:#eaf4ed;color:#458965}
+.task-status{color:#587361;border:1px solid #e1eae1;border-radius:8px;background:#fff;font-size:11px;min-height:33px;padding:0 7px;max-width:104px;flex:none}
+.progress-card{padding:19px 20px;border:1px solid #e5ebe3;border-radius:11px;background:#fff}
+.progress-card.task-is-done{background:#fbfcfa}
+.progress-card-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.progress-meta{display:flex;gap:10px;align-items:center;flex:none}
+.progress-track{background:#e9eee9;height:10px;border-radius:99px;margin-top:19px;position:relative}
+.progress-fill{height:100%;background:#82ae91;border-radius:99px;min-width:0}
+.progress-fill.overdue,.progress-fill.today{background:#d2a17c}
+.progress-fill.done{background:#67a87b}
+.progress-today-marker{position:absolute;top:-4px;width:3px;height:18px;background:#3e6750;border-radius:4px;transform:translateX(-50%)}
+.progress-span{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:11px;font-size:10px;color:#96a197}
+.progress-actions{display:flex;align-items:center;justify-content:flex-end;gap:11px;margin-top:12px}
+.task-calendar-link{font-size:10px;color:#4e8160}
+.task-delete{font-size:10px;color:#9caaa0}.task-delete:hover{color:#b75b50}
+.candidate-row{border-top:1px solid #e8ede7;padding:16px 2px;display:flex;align-items:center;gap:14px;justify-content:space-between}
+.candidate-main{flex:1;min-width:0}.candidate-meta{display:flex;gap:9px;align-items:center;font-size:10px;color:#9eab9e;margin-bottom:8px;flex-wrap:wrap}
+.candidate-tag{color:#a58253;background:#fbf5e8;border-radius:5px;padding:4px 7px}
+.candidate-title{font-size:12px;line-height:1.6;font-weight:620;display:block}.candidate-context{font-size:10px;color:#a3aea2;line-height:1.6;margin:7px 0 0;max-height:36px;overflow:hidden}
+.candidate-actions{display:flex;align-items:center;gap:11px;flex:none}
+.candidate-actions a{font-size:10px;color:#679070}
+.task-link-button{border:1px solid #d7e6d9;border-radius:7px;padding:9px 11px;font-size:10px;color:#3d8052;font-weight:650}
+.task-link-button:hover{background:#edf5ed}
+.candidate-empty{font-size:11px;color:#9aa89b;padding:16px 0}
+.task-modal{max-width:min(510px,calc(100vw - 24px))}
+.task-form-row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.task-confirm{display:flex;gap:9px;align-items:flex-start;margin:20px 0 0;color:#758679;font-size:11px;line-height:1.7}
+.task-confirm input{accent-color:#337653;flex:none;margin-top:2px}
+.notice-row-actions .task-one{border:1px solid #dce9de;font-size:10px;color:#5d8869;border-radius:6px;padding:6px 8px;white-space:nowrap}
+.notice-row-actions .task-one:hover{background:#edf5ee}
+@media(max-width:900px){.today-summary{grid-template-columns:repeat(2,1fr)}.summary-stat:nth-child(2){border-right:0}.summary-stat:nth-child(-n+2){border-bottom:1px solid #e8eee6}}
+@media(max-width:700px){
+  .today-body{align-items:flex-start;flex-direction:column;gap:7px}
+  .today-task{align-items:flex-start;padding:13px}
+  .today-task .task-status{align-self:flex-start}
+  .task-controls{flex-direction:column;align-items:stretch}.task-controls>*{width:100%}
+  .summary-stat{padding:15px}.summary-stat strong{font-size:23px}
+  .progress-card{padding:15px}
+  .progress-card-head{align-items:flex-start;flex-direction:column}
+  .progress-span{flex-wrap:wrap;line-height:1.6}
+  .progress-actions{justify-content:flex-start;flex-wrap:wrap}
+  .candidate-row{align-items:flex-start;flex-direction:column;gap:10px}
+  .candidate-actions{width:100%;justify-content:space-between}
+  .task-form-row{grid-template-columns:1fr}
+  .notice-row-actions .task-one{font-size:0;padding:7px}
+  .notice-row-actions .task-one::after{content:"＋";font-size:15px}
+}
+
+@media(max-width:700px){.side-nav{overflow-x:auto;overflow-y:hidden;max-width:100%;scrollbar-width:none}.side-nav .nav-item{flex:none}.side-nav::-webkit-scrollbar{display:none}}
