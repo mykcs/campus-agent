@@ -148,7 +148,7 @@
       track.setAttribute("aria-label","时间已过去约"+pct+"%，不代表任务完成率");
       track.append(fill,marker);
       const span=element("div","progress-span");
-      const display=day=>String(day).replace(/-/g,".");
+      const display=CampusDisplay.calendar;
       span.append(element("span","","公告："+display(start)),
         element("span","","截止："+display(task.deadlineDate)+(task.deadlineTime?" "+task.deadlineTime+" SGT":" · 日期")));
       const action=element("div","progress-actions");
@@ -186,7 +186,7 @@
       const info=element("div","candidate-main");
       const meta=element("div","candidate-meta");
       meta.append(element("span","candidate-tag","未核对的日期线索"),
-        element("span","",c.date.replace(/-/g,".")+(c.time?" "+c.time+" SGT":"")));
+        element("span","",CampusDisplay.calendar(c.date)+(c.time?" "+c.time+" SGT":"")));
       info.append(meta,officialLink(c.title,c.officialUrl,"candidate-title"));
       if(c.context)info.append(element("p","candidate-context",c.context));
       const actions=element("div","candidate-actions");

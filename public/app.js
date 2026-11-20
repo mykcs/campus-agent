@@ -63,15 +63,8 @@ function officialLink(text,url,cls){
   a.target="_blank";a.rel="noopener noreferrer";
   return a;
 }
-function formatDay(value){
-  const d=String(value||"").slice(0,10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(d)?d.replace(/-/g,"."):"日期待核对";
-}
-function sgt(value){
-  const d=new Date(value||"");
-  if(!Number.isFinite(d.getTime()))return "未确认";
-  return new Intl.DateTimeFormat("zh-CN",{timeZone:"Asia/Singapore",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(d)+" SGT";
-}
+function formatDay(value){return CampusDisplay.sourceDay(value);}
+function sgt(value){return CampusDisplay.instant(value);}
 function topicIds(item){
   if(Array.isArray(item.topics))return item.topics.filter(x=>TOPICS.some(t=>t.id===x));
   const title=String(item.title||"");
