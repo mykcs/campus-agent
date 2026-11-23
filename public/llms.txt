@@ -5,6 +5,7 @@
 ## 入口
 - [Campus Agent](https://campus-agent-sigma.vercel.app/): 从官方公开通知检索、按学院和主题关注、核对申请原文、管理个人进度。
 - [给 Agent 读](https://campus-agent-sigma.vercel.app/agent/): 网站阅读入口。
+- [结构化网站目录](https://campus-agent-sigma.vercel.app/agent/site.json): 与本目录同源的机器可读 JSON。
 - [阅读规约](https://campus-agent-sigma.vercel.app/agent/SKILL.md): 证据、隐私和操作边界。
 - [公开通知数据](https://github.com/mykcs/campus-agent-data): 独立维护的公开来源目录；覆盖和更新时间以实际数据为准。
 
