@@ -24,7 +24,8 @@ jobs:
           node --check public/taskboard-core.js
           node --check public/taskboard.js
           node --check api/chat.js
-      - name: Deterministic date and ICS tests
-        run: node --test tests/taskboard-core.test.cjs
+          node --check public/agent/reader.js
+      - name: Deterministic date, ICS and reader tests
+        run: node --test tests/taskboard-core.test.cjs tests/agent-reader.test.cjs
       - name: Validate Vercel JSON
         run: python3 -m json.tool vercel.json >/dev/null
