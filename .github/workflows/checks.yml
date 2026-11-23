@@ -25,7 +25,8 @@ jobs:
           node --check public/taskboard-core.js
           node --check public/taskboard.js
           node --check api/chat.js
-      - name: Source presentation, calendar precision, and existing ICS contracts
+          node --check public/agent/reader.js
+      - name: Source presentation, calendar precision, reader privacy and existing ICS contracts
         run: npm run check
       - name: Validate Vercel JSON
         run: python3 -m json.tool vercel.json >/dev/null

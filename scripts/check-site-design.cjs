@@ -19,10 +19,13 @@ function styleViolations(css,isOwner=false){
   }
   return errors;
 }
-function inspectHtml(html,css){
+function inspectHtml(html,css,route="index.html"){
   const errors=[];
   if(!/<link\b[^>]*rel="stylesheet"[^>]*href="\/styles.css"/.test(html)||!css.includes('--campus-design-version:1')||!css.includes('font-size:var(--text-body)')||!css.includes('padding:var(--space-'))errors.push('Detached shared stylesheet or actual consumer');
-  if(!/<script src="\/display-date.js" defer><\/script>/.test(html))errors.push('Missing shared calendar display boundary');
+  const isReader=route==='agent/index.html';
+  if(isReader){
+    if(!/<script src="\/agent\/reader.js" defer><\/script>/.test(html)||/<script src="\/(?:app|taskboard(?:-core)?|display-date)\.js"/.test(html))errors.push('Static reader must not load private application or calendar state');
+  }else if(!/<script src="\/display-date.js" defer><\/script>/.test(html))errors.push('Missing shared calendar display boundary');
   const inline=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(x=>x[1]).join('\n');
   errors.push(...styleViolations(inline));
   for(const [,style]of html.matchAll(/style="([^"]+)"/g))errors.push(...styleViolations(`inline{${style}}`));
@@ -32,7 +35,7 @@ function check(){
   const css=fs.readFileSync('public/styles.css','utf8');
   const errors=styleViolations(css,true),htmls=filesBelow('public').filter(file=>file.endsWith('.html'));
   if(!htmls.length)throw Error('No HTML routes');
-  for(const file of htmls)errors.push(...inspectHtml(fs.readFileSync(file,'utf8'),css).map(error=>file+': '+error));
+  for(const file of htmls)errors.push(...inspectHtml(fs.readFileSync(file,'utf8'),css,path.relative('public',file).split(path.sep).join('/')).map(error=>file+': '+error));
   for(const file of filesBelow('public').filter(file=>file.endsWith('.css')&&file!=='public/styles.css'))errors.push(...styleViolations(fs.readFileSync(file,'utf8')).map(error=>file+': '+error));
   const app=fs.readFileSync('public/app.js','utf8'),tasks=fs.readFileSync('public/taskboard.js','utf8');
   if(!app.includes('CampusDisplay.sourceDay(value)')||!app.includes('CampusDisplay.instant(value)')||!tasks.includes('CampusDisplay.calendar'))errors.push('A visible date consumer lost the shared formatter');

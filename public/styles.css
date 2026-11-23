@@ -194,3 +194,18 @@ h1{font-family:var(--font-heading);font-size:var(--text-title);font-weight:var(-
 }
 
 @media(max-width:700px){.side-nav{overflow-x:auto;overflow-y:hidden;max-width:100%;scrollbar-width:none}.side-nav .nav-item{flex:none}.side-nav::-webkit-scrollbar{display:none}}
+
+/* Reader uses the site's existing text, button and color owners. */
+.agent-reader{display:grid;gap:var(--space-24);align-content:start;overflow-wrap:anywhere;line-height:var(--leading-reading)}
+.agent-reader header h1{margin-top:var(--space-8)}
+.agent-reader section,.agent-reader aside{min-width:0;max-width:var(--width-reading)}
+.agent-reader p{margin:0 0 var(--space-12)}
+.agent-reader h2{font-size:var(--text-section);font-weight:var(--weight-bold);margin:0 0 var(--space-12)}
+.agent-reader a{color:var(--green);text-decoration:underline;text-underline-offset:.15em}
+.agent-reader .agent-links{margin:0;padding-inline-start:var(--space-20)}
+.agent-reader .agent-links li{margin-block:var(--space-8)}
+.agent-reader .agent-links p{margin:0}
+.agent-reader textarea{display:block;width:100%;max-width:100%;min-width:0;resize:vertical;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:var(--space-12)}
+.agent-reader textarea:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.agent-reader button:disabled{opacity:.6;cursor:not-allowed}
+.footer>span:last-child{flex-wrap:wrap}

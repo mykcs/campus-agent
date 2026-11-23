@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Campus Agent 只读网站导航与可复制的 Agent 阅读上下文。">
+  <title>给 Agent 读 · Campus Agent</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="alternate" type="text/plain" href="/llms.txt">
+  <script src="/agent/reader.js" defer></script>
+</head>
+<body>
+  <main class="main agent-reader" id="main">
+    <a class="agent-back" href="/">← 返回 Campus Agent</a>
+    <header>
+      <div class="eyebrow">READ-ONLY CONTEXT</div>
+      <h1>给 Agent 读</h1>
+      <p class="page-desc">让 AI 助手先理解网站的功能、官方证据和隐私边界，再帮你查找公开校园通知。</p>
+    </header>
+    <section aria-labelledby="read-title">
+      <h2 id="read-title">阅读入口</h2>
+      <ul class="agent-links">
+        <li><a href="/llms.txt">网站目录 · llms.txt</a><p>功能导航及当前能力的边界。</p></li>
+        <li><a href="/agent/SKILL.md">只读阅读规约 · SKILL.md</a><p>如何核对学校原文、日期线索和证据。</p></li>
+        <li><a href="/">返回网站</a><p>在实际页面阅读通知及来源状态。</p></li>
+      </ul>
+    </section>
+    <section aria-labelledby="copy-title">
+      <h2 id="copy-title">复制阅读上下文</h2>
+      <p>仅包含上述两个静态文件。不读取我的关注、个人任务、聊天内容或 API Key；不绕过现有访问保护。</p>
+      <p id="copy-status" role="status" aria-live="polite">可打开上方文本文件手动复制。</p>
+      <div id="copy-tools" hidden>
+        <button type="button" class="primary-button" id="copy-context" disabled>复制上下文</button>
+        <p><label for="reader-context">上下文预览（可手动选取）</label></p>
+        <textarea id="reader-context" rows="12" readonly></textarea>
+      </div>
+      <noscript><p>未启用 JavaScript，可直接打开上方两个文本文件并手动复制。</p></noscript>
+    </section>
+    <aside aria-labelledby="boundary-title">
+      <h2 id="boundary-title">重要限制</h2>
+      <p>官方原文才是申请条件与截止日期的依据。目录本身不证明 Agent 已读取通知正文，也不授权提交申请或写入个人日历。</p>
+    </aside>
+  </main>
+</body>
+</html>

@@ -59,7 +59,21 @@ for(const route of routes)for(const width of [1440,440,390])test(`${route} ${wid
   test.setTimeout(90000);await page.setViewportSize({width,height:956});await page.emulateMedia({reducedMotion:'reduce'});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/mykcs/campus-agent-data/main/data/notices.json*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload),headers:{'access-control-allow-origin':'*'}}));
-  await page.goto(route);await expect(page.locator('#resultCount')).toHaveText('1 条');
+  await page.goto(route);
+  if(route==='/agent/'){
+    await expect(page.locator('#copy-context')).toBeEnabled();
+    const expected=['llms.txt','agent/SKILL.md'].map(name=>fs.readFileSync('public/'+name,'utf8').trimEnd()).join('\n\n---\n\n')+'\n';
+    await expect(page.locator('#reader-context')).toHaveValue(expected);
+    const measurement=await audit(page),probes=[];
+    probes.push(await perturb(page,'.agent-reader h1',width<=700?'--text-title-mobile':'--text-title','31px','fontSize'));
+    probes.push(await perturb(page,'.agent-reader h2','--text-section','23px','fontSize'));
+    probes.push(await perturb(page,'.agent-reader','--space-unit','.3rem','gap'));
+    await page.screenshot({path:info.outputPath('agent-reader.png'),fullPage:true});
+    expect(errors).toEqual([]);
+    await info.attach('actual-design-consumers',{contentType:'application/json',body:Buffer.from(JSON.stringify({route,width,measurement,probes},null,2))});
+    return;
+  }
+  await expect(page.locator('#resultCount')).toHaveText('1 条');
   await expect(page.locator('.notice-meta')).toContainText(Display.calendar(start));
   await expect(page.locator('#dataAsOf')).toContainText('2027年1月1日 00:00 SGT (UTC+8)');
   await expect(page.locator('.notice-main-link')).toHaveAttribute('href',source);

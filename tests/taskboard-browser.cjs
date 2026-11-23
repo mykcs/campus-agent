@@ -14,7 +14,8 @@ const Core=require("../public/taskboard-core.js");
     res.setHeader("Content-Type",({".css":"text/css",".js":"text/javascript",".svg":"image/svg+xml",".html":"text/html",".webmanifest":"application/manifest+json"}[path.extname(target)]||"text/plain"));
     fs.createReadStream(target).on("error",()=>{res.writeHead(404);res.end()}).pipe(res);
   });
-  await new Promise(resolve=>server.listen(8881,"127.0.0.1",resolve));
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  const baseURL="http://127.0.0.1:"+server.address().port;
   let browser;
   try{
     browser=await chromium.launch({headless:true});
@@ -39,7 +40,7 @@ const Core=require("../public/taskboard-core.js");
     const page=await browser.newPage({viewport:{width:1360,height:900},acceptDownloads:true});
     page.on("pageerror",e=>errors.push(e.message));
     await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
-    await page.goto("http://127.0.0.1:8881/");
+    await page.goto(baseURL+"/");
     await page.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="1 条");
     // First viewport is the actionable campus inbox, not an idle dashboard/sidebar.
     assert.equal(await page.locator("#feedView").isVisible(),true);
@@ -97,7 +98,7 @@ const Core=require("../public/taskboard-core.js");
     const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     mobile.on("pageerror",e=>errors.push("mobile: "+e.message));
     await mobile.route("**/mykcs/campus-agent-data/main/data/notices.json*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
-    await mobile.goto("http://127.0.0.1:8881/");
+    await mobile.goto(baseURL+"/");
     await mobile.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="1 条");
     await mobile.locator('[data-view="progress"]').click();
     const widths=await mobile.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));

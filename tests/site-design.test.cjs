@@ -23,3 +23,11 @@ test('guard rejects detached routes and raw mixed expressions while keeping the 
   for(const bad of ['.article{font-size:9px}','.article{line-height:1.123}','.article{padding:calc(var(--space-4) + 17px)}','.article{margin:var(--space-4) -7px}','.article{max-width:999px}','.article{font-size:0}','.article{font-size:calc(var(--text-body) + 9px)}','.article{max-width:77ch}','.article{font-size:var(--text-missing)}',':root{--text-body:8px}'])assert.ok(styleViolations(bad).length,bad);
   assert.deepEqual(styleViolations('.article{font-size:var(--text-body);padding:var(--space-16)}.ask-one{font-size:0}'),[]);
 });
+
+test('reader route shares design without loading the private application',()=>{
+  const css=fs.readFileSync('public/styles.css','utf8'),html=fs.readFileSync('public/agent/index.html','utf8');
+  assert.deepEqual(inspectHtml(html,css,'agent/index.html'),[]);
+  assert.ok(inspectHtml(html,css).length);
+  assert.ok(inspectHtml(html.replace('/agent/reader.js','/app.js'),css,'agent/index.html').length);
+  assert.ok(inspectHtml(html.replace('/styles.css','/isolated.css'),css,'agent/index.html').length);
+});
