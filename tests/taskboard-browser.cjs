@@ -1,10 +1,11 @@
 /* Local Chromium interaction smoke test. Run with: node tests/taskboard-browser.cjs */
-const {chromium}=require("/Users/myk/node_modules/playwright");
+const {chromium}=require("@playwright/test");
 const http=require("node:http"),fs=require("node:fs"),path=require("node:path");
 const assert=require("node:assert/strict");
 const Core=require("../public/taskboard-core.js");
 
 (async()=>{
+  fs.mkdirSync("test-results",{recursive:true});
   const root=path.resolve(__dirname,"../public");
   const server=http.createServer((req,res)=>{
     const pathname=new URL(req.url,"http://127.0.0.1").pathname;
@@ -16,7 +17,7 @@ const Core=require("../public/taskboard-core.js");
   await new Promise(resolve=>server.listen(8881,"127.0.0.1",resolve));
   let browser;
   try{
-    browser=await chromium.launch({headless:true,executablePath:"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",args:["--no-first-run"]});
+    browser=await chromium.launch({headless:true});
     const today=Core.sgtToday(),deadline=Core.addDays(today,2),start=Core.addDays(today,-3);
     const articleUrl="https://ai.zju.edu.cn/2026/1020/c90497a3216866/page.htm";
     const payload={
@@ -91,7 +92,7 @@ const Core=require("../public/taskboard-core.js");
     await page.locator('[data-view="progress"]').click();
     assert.equal(await page.locator("#progressCount").innerText(),"1 项");
     assert.match(await page.locator("#progressList").innerText(),/已完成/);
-    await page.screenshot({path:"/tmp/campus-agent-progress-desktop.png",fullPage:true});
+    await page.screenshot({path:"test-results/campus-agent-progress-desktop.png",fullPage:true});
     // Mobile layout: no horizontal scroll in 390px viewport.
     const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     mobile.on("pageerror",e=>errors.push("mobile: "+e.message));
@@ -105,7 +106,7 @@ const Core=require("../public/taskboard-core.js");
       console.log("OVERFLOW OFFENDERS",JSON.stringify(offenders));
     }
     assert.ok(widths.scrollWidth<=widths.clientWidth,JSON.stringify(widths));
-    await mobile.screenshot({path:"/tmp/campus-agent-progress-mobile.png",fullPage:true});
+    await mobile.screenshot({path:"test-results/campus-agent-progress-mobile.png",fullPage:true});
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({status:"PASS",tasks:1,deadline,due:"2 days",ics:"downloaded",google:"template",completion:"persists",mobile:widths,errors}));
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
