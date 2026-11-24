@@ -10,6 +10,16 @@
   const validSnapshot=s=>s&&s.health?.status==="healthy"&&Array.isArray(s.sources)&&Array.isArray(s.notices)&&Number.isFinite(time(s.checked_at));
   const sourceMap=s=>new Map(Sources.sourceList(s).filter(x=>["ok","partial"].includes(x.status)).map(x=>[x.id,x]));
   const day=x=>typeof x==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&Number.isFinite(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x;
+  function localDay(ms, school){
+    const zone=school==="mit"?"America/New_York":"Asia/Singapore";
+    const p=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date(ms)).map(x=>[x.type,x.value]));
+    return p.year+"-"+p.month+"-"+p.day;
+  }
+  // Legacy ZJU AI parse_index obtains published_at only from an explicit
+  // date in the listing row; it predates the date_inferred field.
+  function explicitDate(n){
+    return n.date_inferred===false||(n.date_inferred===undefined&&n.source_id==="zju-ai-admissions"&&new URL(n.url).hostname==="ai.zju.edu.cn");
+  }
   function plan({previous,current,preference,seenKeys,nowMs}={}){
     const stop=reason=>({reason,events:[]});
     if(preference?.optIn!==true)return stop("not-opted-in");
@@ -25,7 +35,7 @@
       // A newly onboarded source is a baseline, not a mass alert. Do not
       // advertise undated resources, inferred dates, or old backfill.
       if(!oldSources.has(n.source_id)||!newSources.has(n.source_id)||seen.has(n.url))continue;
-      if(!day(n.published_at)||n.date_inferred!==false||n.published_at<previous.checked_at.slice(0,10)||n.published_at>current.checked_at.slice(0,10))continue;
+      if(!day(n.published_at)||!explicitDate(n)||n.published_at<localDay(before,n.school_id)||n.published_at>localDay(after,n.school_id))continue;
       if(!Sources.isFollowed(n,follows,Array.isArray(n.topics)?n.topics:[]))continue;
       seen.add(n.url);
       events.push({key:n.url,kind:"newly-discovered-public-notice",title:n.title.trim().slice(0,180),url:n.url,school:n.school_id,published_at:n.published_at});

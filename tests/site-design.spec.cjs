@@ -188,7 +188,7 @@ for(const width of [1440,440])test("mixed school follows and dynamic coverage at
   await expect(page.locator('input[name="department"][value="zju-ai"]')).toBeChecked();
   await page.locator('input[name="school"][value="mit"]').check();
   await page.locator('input[name="topic"][value="scholarships"]').check();
-  await page.locator("#followForm .primary-button").click();
+  await page.locator('#followForm button[type="submit"]').click();
   await expect(page.locator("#resultCount")).toHaveText("4 条");
   await expect(page.locator('.notice-main-link').filter({hasText:"MIT funding fixture"})).toHaveAttribute("href","https://oge.mit.edu/funding/fixture/");
   await expect(page.locator(".notice-row").filter({hasText:"Unsafe fake"})).toHaveCount(0);
@@ -220,4 +220,55 @@ test('BYOK key is bound to the configured endpoint',async({page})=>{
   await expect(page.locator('#modelFeedback')).toContainText('Key');
   const saved=await page.evaluate(()=>JSON.stringify({...localStorage}));
   expect(saved).not.toContain('TEST_ONLY_FAKE_KEY');
+});
+
+
+test("push settings never prompt before opt-in, use only saved follows, and support revoke",async({page})=>{
+  const requests=[];
+  let configured=false,registered=false;
+  const fakeKey="BA"+"A".repeat(85);
+  await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",r=>r.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
+  await page.route("**/api/alerts",async r=>{
+    if(r.request().method()==="GET")return r.fulfill({status:200,contentType:"application/json",body:JSON.stringify({configured,registered,publicKey:fakeKey})});
+    const b=r.request().postDataJSON();requests.push(b);
+    registered=b.action==="subscribe";
+    return r.fulfill({status:200,contentType:"application/json",body:JSON.stringify({configured:true,registered,publicKey:fakeKey})});
+  });
+  await page.addInitScript(()=>{
+    let prompts=0,sub=null;
+    Object.defineProperty(window,"Notification",{configurable:true,value:{permission:"default",requestPermission:async()=>{prompts++;return "granted";}}});
+    Object.defineProperty(window,"PushManager",{configurable:true,value:function(){}});
+    const reg={pushManager:{
+      async getSubscription(){return sub;},
+      async subscribe(opts){sub={options:{applicationServerKey:opts.applicationServerKey.buffer},
+        toJSON:()=>({endpoint:"https://web.push.apple.com/"+"A".repeat(32),keys:{p256dh:"synthetic",auth:"synthetic"}}),
+        unsubscribe:async()=>{sub=null;return true;}};return sub;}
+    }};
+    Object.defineProperty(navigator,"serviceWorker",{configurable:true,value:{register:async()=>reg,getRegistration:async()=>reg}});
+    Object.defineProperty(window,"testPromptCount",{get:()=>prompts});
+    localStorage.setItem("campus-agent:tasks:v1","[]");
+  });
+  await page.goto("/");
+  await expect(page.locator("#resultCount")).toHaveText("1 条");
+  await page.locator("#editTopFocus").click();
+  await page.locator("#alertDetails summary").click();
+  await expect(page.locator("#alertStatus")).toContainText("尚未启用");
+  await expect(page.locator("#enableAlerts")).toBeDisabled();
+  expect(await page.evaluate(()=>window.testPromptCount)).toBe(0);
+  await page.locator("#alertDetails summary").click();
+  configured=true;
+  await page.locator("#alertDetails summary").click();
+  await expect(page.locator("#enableAlerts")).toBeEnabled();
+  expect(await page.evaluate(()=>window.testPromptCount)).toBe(0);
+  await page.locator("#alertInvite").fill("synthetic-invite");
+  await page.locator("#enableAlerts").click();
+  await expect(page.locator("#alertStatus")).toContainText("服务端已确认");
+  expect(await page.evaluate(()=>window.testPromptCount)).toBe(1);
+  expect(requests.length).toBe(1);
+  expect(requests[0].preference).toEqual({optIn:true,schools:[],departments:["zju-ai"],topics:[]});
+  expect(Object.keys(requests[0]).sort()).toEqual(["action","invite","preference","subscription"]);
+  await expect(page.locator("#alertInvite")).toHaveValue("");
+  await page.locator("#disableAlerts").click();
+  await expect(page.locator("#alertStatus")).toContainText("已确认撤销");
+  expect(requests[1]).toEqual({action:"revoke"});
 });

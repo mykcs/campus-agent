@@ -35,3 +35,11 @@ test("no burst from newly added or previously failed sources",()=>{
   assert.equal(plan({...base,current:snapshot(after,[n],[source,newSource]),preference:{optIn:true,schools:["mit"]}}).events.length,0);
   assert.equal(plan({...base,previous:snapshot(before,[],[{...source,status:"error"}])}).events.length,0);
 });
+
+
+test("source-local date boundary and legacy explicit ZJU AI row dates",()=>{
+  const midnight=Date.parse("2026-11-24T16:30:00Z");
+  const a=snapshot("2026-11-24T15:30:00Z",[notice("old")]);
+  const b=snapshot("2026-11-24T16:30:00Z",[notice("legacy-ai",{published_at:"2026-11-25",date_inferred:undefined})]);
+  assert.equal(plan({...base,previous:a,current:b,nowMs:midnight+1000}).events.length,1);
+});

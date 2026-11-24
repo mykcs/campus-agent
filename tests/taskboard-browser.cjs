@@ -52,7 +52,7 @@ const Core=require("../public/taskboard-core.js");
     // A cross-college topic is a UNION with the student’s followed department.
     await page.locator("#editTopFocus").click();
     await page.locator('input[name="topic"][value="scholarships"]').check();
-    await page.locator("#followForm .primary-button").click();
+    await page.locator('#followForm button[type="submit"]').click();
     assert.equal(await page.locator("#resultCount").innerText(),"2 条");
     const visibleLabels=await page.locator(".notice-row h3").allTextContents();
     assert.ok(visibleLabels.some(x=>x.includes("博士")));
