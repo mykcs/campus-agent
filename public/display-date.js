@@ -19,15 +19,23 @@
     const raw=String(value||"");
     return calendar(/^\d{4}-\d{2}-\d{2}T/.test(raw)?raw.slice(0,10):raw);
   }
+  // Only complete, offset-aware timestamps have second-level precision.
+  // Date-only and minute-only metadata must not be padded into an instant.
   function instant(value){
-    const raw=String(value||"");
-    // Date-only values never enter Date parsing; an instant needs an explicit offset.
-    if(!/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(raw))return "未确认";
-    if(calendar(raw.slice(0,10))==="日期待核对")return "未确认";
+    const raw=typeof value==="string"?value:"";
+    if(!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:0\d|1[0-4]):[0-5]\d)$/.test(raw))return "时间未确认（秒级）";
+    if(calendar(raw.slice(0,10))==="日期待核对")return "时间未确认（秒级）";
     const date=new Date(raw);
-    if(!Number.isFinite(date.getTime()))return "未确认";
-    const parts=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Singapore",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(date).map(part=>[part.type,part.value]));
-    return calendar(`${parts.year}-${parts.month}-${parts.day}`)+` ${parts.hour}:${parts.minute} SGT (UTC+8)`;
+    if(!Number.isFinite(date.getTime()))return "时间未确认（秒级）";
+    function zone(timeZone,label){
+      const parts=Object.fromEntries(new Intl.DateTimeFormat("en-US",{
+        timeZone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",
+        hourCycle:"h23",timeZoneName:"shortOffset"
+      }).formatToParts(date).map(part=>[part.type,part.value]));
+      const offset=parts.timeZoneName.replace("GMT","UTC");
+      return label+" "+calendar(parts.year+"-"+parts.month+"-"+parts.day)+" "+parts.hour+":"+parts.minute+":"+parts.second+" ("+offset+")";
+    }
+    return zone("America/Los_Angeles","PT")+" · "+zone("Asia/Singapore","SGT");
   }
   return Object.freeze({calendar,sourceDay,instant});
 });

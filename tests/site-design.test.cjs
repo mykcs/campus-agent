@@ -8,11 +8,11 @@ test('calendar display keeps precision and the SGT year boundary without changin
     assert.equal(Display.calendar('2026-06'),'2026年6月');
     assert.equal(Display.calendar('2026'),'2026年');
     assert.equal(Display.calendar('2024-02-29'),'2024年2月29日');
-    assert.equal(Display.instant('2026-12-31T16:00:00Z'),'2027年1月1日 00:00 SGT (UTC+8)');
-    assert.equal(Display.instant('2026-12-31T15:59:00Z'),'2026年12月31日 23:59 SGT (UTC+8)');
+    assert.equal(Display.instant('2026-12-31T16:00:00Z'),'PT 2026年12月31日 08:00:00 (UTC-8) · SGT 2027年1月1日 00:00:00 (UTC+8)');
+    assert.equal(Display.instant('2026-06-07T01:30:42Z'),'PT 2026年6月6日 18:30:42 (UTC-7) · SGT 2026年6月7日 09:30:42 (UTC+8)');
   }
   for(const bad of ['2026-02-29','2026-13-01','2026-06-31','06/07/2026','',undefined])assert.equal(Display.calendar(bad),'日期待核对');
-  for(const bad of ['2026-06-07','2026-06-07T01:00:00','2026-02-29T12:00:00Z','2026-06-31T00:00:00+08:00','garbage'])assert.equal(Display.instant(bad),'未确认');
+  for(const bad of ['2026-06-07','2026-06-07T01:00:00','2026-02-29T12:00:00Z','2026-06-31T00:00:00+08:00','garbage'])assert.equal(Display.instant(bad),'时间未确认（秒级）');
   assert.equal(Display.sourceDay('2026-06-07T01:30:00Z'),'2026年6月7日');
 });
 test('guard rejects detached routes and raw mixed expressions while keeping the narrow accessible icon treatment',()=>{
