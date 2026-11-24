@@ -84,7 +84,12 @@ for(const width of [1440,440,390])test.describe(width+'px device',()=>{
   }
   await expect(page.locator('#resultCount')).toHaveText('1 条');
   await expect(page.locator('.notice-meta')).toContainText(Display.calendar(start));
-  await expect(page.locator('#dataAsOf')).toContainText('2027年1月1日 00:00 SGT (UTC+8)');
+  await expect(page.locator('#dataAsOf')).toContainText('SGT 2027年1月1日 00:00:00 (UTC+8)');
+  await expect(page.locator('#syncTime')).toBeVisible();
+  await expect(page.locator('#syncTime')).toContainText('PT 2026年12月31日 08:00:00 (UTC-8)');
+  await expect(page.locator('#syncTime')).toContainText('SGT 2027年1月1日 00:00:00 (UTC+8)');
+  await expect(page.locator('#syncTime')).toHaveAttribute('datetime',payload.checked_at);
+  await expect(page.locator('#syncStatus')).not.toHaveText('公开数据已更新');
   await expect(page.locator('.notice-main-link')).toHaveAttribute('href',source);
   const states=[],probes=[];
   // All navigation controls stay inside the screen; the active view is exposed to assistive tech.

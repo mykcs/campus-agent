@@ -14,6 +14,7 @@ Scope: `mykcs/campus-agent` only. This repository owns the website and personal 
 - **BYOK.** Model API key remains in tab memory only. The existing backend proxy is restricted to reviewed providers; arbitrary Base URL is browser-direct and CORS-dependent. Never log or paste keys into tests.
 - **Costs/deploy.** Site runs on Vercel Hobby (protected during development). Scheduled notice collection stays in the independent public data repository. Its normal data commits must not redeploy this project. No Cloudflare or paid dependency without a new user decision.
 - **Calendar boundaries.** Personal one-time `.ics` export and Google template links do **not** continuously synchronize or write completion status back. Never claim a subscription URL exists unless an actual reachable, authorized feed has been deployed and tested.
+- **Freshness timestamps.** Follow the shared Website Standard freshness contract: every updated/checked/synced state visibly carries its authoritative second-precision PT (America/Los_Angeles) and SGT (Asia/Singapore) instant, with DST and both calendar dates. Preserve source/check/last-success distinctions, missing precision, cached/error states and mobile readability; use \`public/display-date.js\` for these displays. Never use page load/build time to claim data freshness.
 - **Source coverage.** Some ZJU departments rely on the public university search and must be labelled `partial`, not complete monitoring. Failed/stale inputs are surfaced, not hidden.
 
 ## Code ownership
