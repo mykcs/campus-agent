@@ -1,5 +1,5 @@
-const CACHE = "campus-agent-shell-v2";
-const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/taskboard-core.js", "/taskboard.js", "/icon.svg"];
+const CACHE = "campus-agent-shell-v3";
+const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/display-date.js", "/taskboard-core.js", "/taskboard.js", "/icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));
   self.skipWaiting();
