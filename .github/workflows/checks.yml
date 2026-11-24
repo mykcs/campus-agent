@@ -55,7 +55,8 @@ jobs:
       - name: Install pinned test dependencies
         run: npm ci
       - name: Verify preinstalled browser revisions match the locked package
-        run: node -e "const fs=require('node:fs');const {chromium,webkit}=require('playwright');for(const b of [chromium,webkit])if(!fs.existsSync(b.executablePath()))throw Error('Missing locked browser: '+b.executablePath())"
+        run: |
+          node -e "const fs=require('node:fs');const {chromium,webkit}=require('playwright');for(const b of [chromium,webkit])if(!fs.existsSync(b.executablePath()))throw Error('Missing locked browser: '+b.executablePath())"
       - name: Every route and view, actual shared styles and task regressions
         run: npm run test:browser
       - name: Keep exact candidate evidence
