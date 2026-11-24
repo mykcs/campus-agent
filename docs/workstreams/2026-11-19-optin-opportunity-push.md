@@ -44,3 +44,10 @@
 - 实施：NOT DONE
 - 集成验收：NOT RUN
 - 最近核对：2026-11-19 PT；head 以 GitHub PR 为准。
+
+## 2026-11-24 implementation checkpoint
+
+- Added a pure alert planner (`public/opportunity-alert-core.js`) and five regression tests. Explicit opt-in, fresh healthy snapshots, existing healthy source baseline and a durable deduplication ledger are mandatory. The planner only emits matched, newly discovered, dated official public URLs; it suppresses older backfill, newly onboarded sources, replay and untrusted URLs. It never sends, requests permissions, stores credentials or handles private deadlines. Conservative UTC-day screening can omit local-date boundary discoveries; this is not a complete publication-event stream.
+- The website is still protected by Vercel Authentication. Listing existing Vercel storage integrations returned HTTP 403 in the current integration scope. No authorized private subscription store, independent student identity, authenticated sending scheduler or VAPID setup has been established. Do not create or expose a subscription database or change production protection to bypass this gate.
+- Real iPhone/PWA closed-page delivery and opt-out delivery check: NOT RUN. Private deadline delivery: NOT IMPLEMENTED. A deterministic planner result is not a notification delivery receipt.
+- Next: accept a free private storage/identity design and provision only with the relevant owner authorization, design authenticated dispatch with atomic event ledger and subscription revocation, then test explicit consent, one closed-page notification, replay and revocation on a consenting physical device. Keep this PR Draft until all delivery gates pass. No external alerts sent.
