@@ -53,7 +53,7 @@ function officialLink(text,url,cls){
   return a;
 }
 function formatDay(value){return CampusDisplay.sourceDay(value);}
-function sgt(value){return CampusDisplay.instant(value);}
+function freshnessTime(value){return CampusDisplay.instant(value);}
 function topicIds(item){
   if(Array.isArray(item.topics))return item.topics.filter(x=>TOPICS.some(t=>t.id===x));
   const title=String(item.title||"");
@@ -70,18 +70,23 @@ function sourceMeta(id){return Sources.sourceList(state.snapshot).find(x=>x.id==
 function currentHealth(){
   if(state.fetchFailed)return {text:state.snapshot?"当前获取失败 · 读取缓存":"数据不可用",bad:true};
   if(!state.snapshot)return {text:"数据不可用",bad:true};
+  if(freshnessTime(state.snapshot.checked_at).startsWith("时间未确认"))return {text:"数据时间未确认",bad:true};
   const age=Date.now()-new Date(state.snapshot.checked_at).getTime();
   if(!Number.isFinite(age)||age<0||age>6*3600000)return {text:"数据更新延迟或时间异常",bad:true};
-  if(state.snapshot.health&&state.snapshot.health.status!=="healthy")return {text:"采集健康检查异常",bad:true};
+  if(state.snapshot.health?.status!=="healthy")return {text:"采集健康状态未确认或异常",bad:true};
   if((state.snapshot.sources||[]).some(s=>s.status==="error"||s.status==="degraded"))return {text:"部分来源异常",bad:true};
   return {text:"公开数据已更新",bad:false};
 }
 function renderHealth(){
   const health=currentHealth();
   $("syncStatus").textContent=health.text;
+  const timestamp=state.snapshot?.checked_at;
+  const stamp=$("syncTime");
+  stamp.textContent=timestamp?"数据快照："+freshnessTime(timestamp):"数据快照时间未确认";
+  if(timestamp&&!freshnessTime(timestamp).startsWith("时间未确认"))stamp.setAttribute("datetime",timestamp);else stamp.removeAttribute("datetime");
   $("syncDot").className=health.bad?"bad":"good";
   $("navCount").textContent=String(state.notices.filter(isFollowed).length);
-  $("dataAsOf").textContent="数据检查："+(state.snapshot?sgt(state.snapshot.checked_at):"暂无记录")+" · 非实时、非学校官方服务";
+  $("dataAsOf").textContent="数据快照："+freshnessTime(timestamp)+" · 非实时、非学校官方服务";
 }
 function renderFollows(){
   const wrap=$("sideFollows");
@@ -220,7 +225,14 @@ function renderSources(){
         source.status==="ok"?"已成功读取公开栏目":
         ["error","degraded"].includes(source.status)?"本轮读取异常，请手动检查官方网页":
         "尚未稳定接入，不能视为自动监控";
-      title.append(element("small","",desc));info.append(title);
+      title.append(element("small","",desc));
+      if(source.status!=="pending"){
+        for(const [label,value] of [["最近检查",source.last_checked_at],["最近成功",source.last_success_at]]){
+          const stamp=element("small","source-freshness",label+"："+freshnessTime(value));
+          title.append(stamp);
+        }
+      }
+      info.append(title);
       const right=element("div","source-right");
       right.append(element("span","source-badge"+(source.status!=="ok"?" warn":""),Sources.statusLabel(source.status)));
       right.append(officialLink("官方入口 ↗",source.url,""));
