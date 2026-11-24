@@ -152,3 +152,23 @@ for(const width of [1440,440])test("mixed school follows and dynamic coverage at
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   expect(failures).toEqual([]);
 });
+
+// Regression: a provider switch cannot inherit a previous provider's key.
+test('BYOK key is bound to the configured endpoint',async({page})=>{
+  await page.route('**/mykcs/campus-agent-data/main/data/notices.json*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload),headers:{'access-control-allow-origin':'*'}}));
+  await page.goto('/');
+  await page.locator('[data-view="ask"]').click();
+  await page.locator('#openModelChat').click();
+  await page.locator('#modelInput').fill('mock-model');
+  await page.locator('#apiKeyInput').fill('TEST_ONLY_FAKE_KEY');
+  await page.locator('#modelForm button[type="submit"]').click();
+  await expect(page.locator('#modelDialog')).not.toBeVisible();
+  await page.locator('#openModelChat').click();
+  await page.locator('#providerSelect').selectOption('deepseek');
+  await page.locator('#apiKeyInput').fill('');
+  await page.locator('#modelForm button[type="submit"]').click();
+  await expect(page.locator('#modelDialog')).toBeVisible();
+  await expect(page.locator('#modelFeedback')).toContainText('Key');
+  const saved=await page.evaluate(()=>JSON.stringify({...localStorage}));
+  expect(saved).not.toContain('TEST_ONLY_FAKE_KEY');
+});
