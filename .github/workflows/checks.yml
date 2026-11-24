@@ -49,6 +49,7 @@ jobs:
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           mkdir -p test-results
           printf '{"sha":"%s","run":"%s"}\n' "$EXPECTED_SHA" "$GITHUB_RUN_ID" > test-results/source.json
