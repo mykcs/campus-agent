@@ -6,7 +6,7 @@ const http = require("node:http");
 const root = path.resolve(__dirname, "../public");
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
 const expected = ["llms.txt", "agent/SKILL.md"].map(name => read(name).trimEnd()).join("\n\n---\n\n") + "\n";
-const types = {".html":"text/html; charset=utf-8",".css":"text/css",".js":"application/javascript",".txt":"text/plain; charset=utf-8",".md":"text/plain; charset=utf-8",".svg":"image/svg+xml"};
+const types = {".html":"text/html; charset=utf-8",".css":"text/css",".js":"application/javascript",".txt":"text/plain; charset=utf-8",".md":"text/plain; charset=utf-8",".svg":"image/svg+xml",".json":"application/json; charset=utf-8"};
 const csp = require("../vercel.json").headers[0].headers.find(h => h.key === "Content-Security-Policy").value;
 (async () => {
   const server = http.createServer((req, res) => {
@@ -64,6 +64,10 @@ const csp = require("../vercel.json").headers[0].headers.find(h => h.key === "Co
     assert.equal(await page.getByRole("link",{name:"网站目录 · llms.txt"}).isVisible(),true);
     assert.equal(await page.getByRole("link",{name:"只读阅读规约 · SKILL.md"}).isVisible(),true);
     assert.equal((await page.request.get(url+"/llms.txt")).status(),200);
+    assert.equal(await page.getByRole("link",{name:"结构化目录 · site.json"}).isVisible(),true);
+    const indexResponse = await page.request.get(url+"/agent/site.json");
+    assert.equal(indexResponse.status(),200);
+    assert.deepEqual(await indexResponse.json(),JSON.parse(read("agent/site.json")));
     assert.equal((await page.request.get(url+"/agent/SKILL.md")).status(),200);
     await off.close();
     console.log("clipboard-denied and no-JavaScript fallbacks PASS");

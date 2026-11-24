@@ -18,3 +18,17 @@ test("reader is discoverable and only reads approved static files", () => {
   assert.match(read("llms.txt"), /官方原文/);
   assert.match(read("agent/SKILL.md"), /不得推断截止日期/);
 });
+
+test("structured index is a deterministic projection of the reviewed directory", () => {
+  const { project, render } = require("../scripts/generate-agent-index.cjs");
+  const source = read("llms.txt");
+  const index = JSON.parse(read("agent/site.json"));
+  assert.equal(read("agent/site.json"), render(source));
+  assert.deepEqual(Object.keys(index), ["schemaVersion", "title", "description", "links", "readingNotes"]);
+  assert.equal(index.schemaVersion, 1);
+  assert.equal(index.links.length, 5);
+  assert.match(read("agent/index.html"), /href="\/agent\/site\.json"/);
+  assert.match(read("index.html"), /type="application\/json" href="\/agent\/site\.json"/);
+  assert.throws(() => project(source.replace("https://github.com/mykcs/campus-agent-data", "https://unreviewed.example/path")));
+  assert.throws(() => project(source + "\n\n## unexpected\nprivate data"));
+});

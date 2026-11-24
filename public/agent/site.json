@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "title": "Campus Agent",
+  "description": "独立校园公开通知阅读与个人申请进度工具，非大学官方服务。",
+  "links": [
+    {
+      "title": "Campus Agent",
+      "url": "https://campus-agent-sigma.vercel.app/",
+      "description": "从官方公开通知检索、按学院和主题关注、核对申请原文、管理个人进度。"
+    },
+    {
+      "title": "给 Agent 读",
+      "url": "https://campus-agent-sigma.vercel.app/agent/",
+      "description": "网站阅读入口。"
+    },
+    {
+      "title": "结构化网站目录",
+      "url": "https://campus-agent-sigma.vercel.app/agent/site.json",
+      "description": "与本目录同源的机器可读 JSON。"
+    },
+    {
+      "title": "阅读规约",
+      "url": "https://campus-agent-sigma.vercel.app/agent/SKILL.md",
+      "description": "证据、隐私和操作边界。"
+    },
+    {
+      "title": "公开通知数据",
+      "url": "https://github.com/mykcs/campus-agent-data",
+      "description": "独立维护的公开来源目录；覆盖和更新时间以实际数据为准。"
+    }
+  ],
+  "readingNotes": [
+    "通知：以每条通知的学校官方原文为准；部分覆盖不代表全校实时监控。",
+    "Progress / 今日任务：仅用户核对后的截止日期进入个人任务；时间条表示时间经过而非任务完成率。",
+    "日历：一次性 ICS 导出或 Google 日历模板，不等于订阅、自动同步或写回。",
+    "校园问答：本地检索可独立使用；可选自带模型的回答不替代学校原文。",
+    "个人关注、申请任务、备注与完成状态属于当前浏览器；不在本阅读目录中。"
+  ]
+}
