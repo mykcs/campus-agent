@@ -1,0 +1,21 @@
+<aside class="sidebar">
+    <a class="brand" href="/" aria-label="Campus Agent 首页">
+      <span class="brand-symbol">✳</span><span>Campus <strong>Agent</strong></span>
+    </a>
+    <div class="side-label">工作区</div>
+    <nav class="side-nav" aria-label="网站导航">
+      <button type="button" class="nav-item active" data-view="feed" aria-current="page"><span class="nav-icon" aria-hidden="true">▤</span>我的动态 <span id="navCount" class="nav-count">—</span></button>
+      <button type="button" class="nav-item" data-view="progress" aria-label="进度与今日任务"><span class="nav-icon" aria-hidden="true">▰</span><span class="nav-long">进度与今日任务</span><span class="nav-short" aria-hidden="true">进度任务</span></button>
+      <button type="button" class="nav-item" data-view="ask"><span class="nav-icon" aria-hidden="true">✳</span>校园问答</button>
+      <button type="button" class="nav-item" data-view="sources"><span class="nav-icon" aria-hidden="true">▥</span>数据来源</button>
+    </nav>
+    <div class="focus-side">
+      <div class="focus-side-head"><span>我的关注</span><button id="editSideFocus" type="button" aria-label="编辑关注">编辑</button></div>
+      <div id="sideFollows" class="followed-pills"><span class="text-muted">尚未设置</span></div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="independent"><span class="independent-dot"></span>仅使用公开的学校信息</div>
+      <button id="openModelSide" class="nav-item model-nav" type="button"><span class="nav-icon" aria-hidden="true">⚙</span>模型设置 <span id="modelSideState" class="setting-state">可选</span></button>
+      <small>独立开源项目 · 非学校官方服务</small>
+    </div>
+  </aside>

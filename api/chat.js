@@ -25,16 +25,20 @@ export default async function handler(req, res) {
     } catch { return json(res, 403, {error: "Invalid Origin"}); }
   }
   const length = Number(req.headers["content-length"] || 0);
+  if (!Number.isFinite(length) || length < 0) return json(res, 400, {error: "Invalid content length."});
   if (length > 45_000) return json(res, 413, {error: "Request is too large."});
   try {
-    const data = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    if (!data || typeof data !== "object") return json(res, 400, {error: "Invalid JSON"});
+    const raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+    if (typeof raw !== "string") return json(res, 400, {error: "Invalid JSON"});
+    if (Buffer.byteLength(raw,"utf8") > 45_000) return json(res, 413, {error: "Request is too large."});
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== "object" || Array.isArray(data)) return json(res, 400, {error: "Invalid JSON"});
     const apiKey = String(data.apiKey || "").trim();
     const model = String(data.model || "").trim();
     const question = String(data.question || "").trim().slice(0, 1600);
     const providerURL = String(data.baseUrl || "");
     if (!apiKey || !model || !question) return json(res, 400, {error: "API Key, model and question are required."});
-    if (apiKey.length > 500 || model.length > 110) return json(res, 400, {error: "Invalid credentials or model ID"});
+    if (apiKey.length > 500 || /[\r\n\x00-\x1f\x7f]/.test(apiKey) || model.length > 110) return json(res, 400, {error: "Invalid credentials or model ID"});
     let base;
     try { base = new URL(providerURL); }
     catch { return json(res, 400, {error: "Invalid API Base URL"}); }
@@ -44,7 +48,14 @@ export default async function handler(req, res) {
     }
     const path = base.pathname.replace(/\/+$/, "");
     if (path !== "/v1" && path !== "/compatible-mode/v1") return json(res, 400, {error: "Expected /v1 or /compatible-mode/v1 provider URL"});
-    const rows = Array.isArray(data.notices) ? data.notices.slice(0, 7) : [];
+    const official = (value) => {
+      try {
+        const u = new URL(value);
+        const school = ["zju.edu.cn","mit.edu","tsinghua.edu.cn"].find(d=>u.hostname===d||u.hostname.endsWith("."+d));
+        return Boolean(school && !u.username && !u.password && !u.port && (u.protocol==="https:" || (school==="zju.edu.cn" && u.protocol==="http:")));
+      } catch { return false; }
+    };
+    const rows = Array.isArray(data.notices) ? data.notices.filter(n=>n && typeof n==="object" && official(n.url)).slice(0, 7) : [];
     const context = rows.map((n, i) => ({
       index: i + 1,
       title: String(n.title || "").slice(0, 180),
@@ -82,10 +93,13 @@ export default async function handler(req, res) {
           max_tokens: 900,
           stream: false
         }),
+        // Never follow a redirect to an unreviewed host or path with credentials.
+        redirect: "error",
         signal: controller.signal
       });
       if (!response.ok) {
-        return json(res, 502, {error: "Model provider returned HTTP " + response.status + ". Check your API Key, model ID and balance."});
+        const reason = ({401:"Credentials rejected.",402:"Provider quota or billing check required.",403:"Provider access denied.",429:"Provider rate limit reached."})[response.status] || "Provider request failed.";
+        return json(res, 502, {error: "Model provider returned HTTP " + response.status + ". " + reason});
       }
       const payload = await response.json();
       let answer = payload?.choices?.[0]?.message?.content;

@@ -16,15 +16,66 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Node.js matching the deployment runtime
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 26
       - name: Runtime
         run: node --version
+      - name: Install pinned dependencies
+        run: npm ci
       - name: JavaScript syntax
         run: |
           node --check public/app.js
           node --check public/taskboard-core.js
           node --check public/taskboard.js
           node --check api/chat.js
-      - name: Deterministic date and ICS tests
-        run: node --test tests/taskboard-core.test.cjs
+          node --check public/agent/reader.js
+      - name: Source presentation, calendar precision, reader privacy and existing ICS contracts
+        run: npm run check
       - name: Validate Vercel JSON
         run: python3 -m json.tool vercel.json >/dev/null
+
+  browser:
+    runs-on: ubuntu-24.04
+    # Reuse the exact browser image qualified in repository browser CI.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+    timeout-minutes: 20
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Bind source identity
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          mkdir -p test-results
+          printf '{"sha":"%s","run":"%s"}\n' "$EXPECTED_SHA" "$GITHUB_RUN_ID" > test-results/source.json
+      - name: Node.js matching the deployment runtime
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 26
+      - name: Install pinned test dependencies
+        run: npm ci
+      - name: Verify preinstalled browser revisions match the locked package
+        run: |
+          node -e "const fs=require('node:fs');const {chromium,webkit}=require('playwright');for(const b of [chromium,webkit])if(!fs.existsSync(b.executablePath()))throw Error('Missing locked browser: '+b.executablePath())"
+      - name: Every route and view, actual shared styles and task regressions
+        run: npm run test:browser
+      - name: Keep exact candidate evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: campus-design-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 3

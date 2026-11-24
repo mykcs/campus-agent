@@ -1,11 +1,12 @@
 /* Local Chromium interaction smoke test. Run with: node tests/taskboard-browser.cjs */
-const {chromium}=require("/Users/myk/node_modules/playwright");
+const {chromium}=require("@playwright/test");
 const http=require("node:http"),fs=require("node:fs"),path=require("node:path");
 const assert=require("node:assert/strict");
 const Core=require("../public/taskboard-core.js");
 
 (async()=>{
-  const root=path.resolve(__dirname,"../public");
+  fs.mkdirSync("test-results",{recursive:true});
+  const root=path.resolve(__dirname,"../dist");
   const server=http.createServer((req,res)=>{
     const pathname=new URL(req.url,"http://127.0.0.1").pathname;
     const target=path.resolve(root,"."+ (pathname==="/"?"/index.html":pathname));
@@ -13,10 +14,11 @@ const Core=require("../public/taskboard-core.js");
     res.setHeader("Content-Type",({".css":"text/css",".js":"text/javascript",".svg":"image/svg+xml",".html":"text/html",".webmanifest":"application/manifest+json"}[path.extname(target)]||"text/plain"));
     fs.createReadStream(target).on("error",()=>{res.writeHead(404);res.end()}).pipe(res);
   });
-  await new Promise(resolve=>server.listen(8881,"127.0.0.1",resolve));
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  const baseURL="http://127.0.0.1:"+server.address().port;
   let browser;
   try{
-    browser=await chromium.launch({headless:true,executablePath:"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",args:["--no-first-run"]});
+    browser=await chromium.launch({headless:true});
     const today=Core.sgtToday(),deadline=Core.addDays(today,2),start=Core.addDays(today,-3);
     const articleUrl="https://ai.zju.edu.cn/2026/1020/c90497a3216866/page.htm";
     const payload={
@@ -38,7 +40,7 @@ const Core=require("../public/taskboard-core.js");
     const page=await browser.newPage({viewport:{width:1360,height:900},acceptDownloads:true});
     page.on("pageerror",e=>errors.push(e.message));
     await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
-    await page.goto("http://127.0.0.1:8881/");
+    await page.goto(baseURL+"/");
     await page.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="1 条");
     // First viewport is the actionable campus inbox, not an idle dashboard/sidebar.
     assert.equal(await page.locator("#feedView").isVisible(),true);
@@ -91,12 +93,12 @@ const Core=require("../public/taskboard-core.js");
     await page.locator('[data-view="progress"]').click();
     assert.equal(await page.locator("#progressCount").innerText(),"1 项");
     assert.match(await page.locator("#progressList").innerText(),/已完成/);
-    await page.screenshot({path:"/tmp/campus-agent-progress-desktop.png",fullPage:true});
+    await page.screenshot({path:"test-results/campus-agent-progress-desktop.png",fullPage:true});
     // Mobile layout: no horizontal scroll in 390px viewport.
     const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     mobile.on("pageerror",e=>errors.push("mobile: "+e.message));
     await mobile.route("**/mykcs/campus-agent-data/main/data/notices.json*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
-    await mobile.goto("http://127.0.0.1:8881/");
+    await mobile.goto(baseURL+"/");
     await mobile.waitForFunction(()=>document.querySelector("#resultCount")?.textContent==="1 条");
     await mobile.locator('[data-view="progress"]').click();
     const widths=await mobile.evaluate(()=>({scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}));
@@ -105,7 +107,7 @@ const Core=require("../public/taskboard-core.js");
       console.log("OVERFLOW OFFENDERS",JSON.stringify(offenders));
     }
     assert.ok(widths.scrollWidth<=widths.clientWidth,JSON.stringify(widths));
-    await mobile.screenshot({path:"/tmp/campus-agent-progress-mobile.png",fullPage:true});
+    await mobile.screenshot({path:"test-results/campus-agent-progress-mobile.png",fullPage:true});
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({status:"PASS",tasks:1,deadline,due:"2 days",ics:"downloaded",google:"template",completion:"persists",mobile:widths,errors}));
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

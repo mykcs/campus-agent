@@ -15,15 +15,16 @@ node --test tests/taskboard-core.test.cjs
 git diff --check
 ~~~
 
-预期：JS 语法全部成功、RFC5545 / 日期 / 任务验证单测全过、无 Git whitespace 错误。静态网站无需 Next.js 构建步骤。
+预期：JS 语法、Astro 类型检查及静态构建成功，RFC5545 / 日期 / 任务验证单测全过，无 Git whitespace 错误。全站测试消费 `dist/`，而非开发源码中的空 public 目录。完整本地验证使用 `npm run check`。
 
 ## 实际浏览器回归
 
 ~~~sh
-node tests/taskboard-browser.cjs
+npm ci
+npm run test:browser
 ~~~
 
-此脚本针对现有 Mac 开发环境的 Playwright 和 Chrome 路径编写；其他机器需根据本机安装位置适配。测试用本地 HTTP server，模拟合法官方数据，不在 GitHub 触发真实模型调用、日历写入或学校登录。
+浏览器依赖由 package-lock.json 锁定；GitHub-hosted Ubuntu 安装 Chromium/WebKit。既有 smoke 已移除个人 Mac 路径。测试用本地 HTTP server，模拟合法官方数据，不在 GitHub 触发真实模型调用、日历写入或学校登录。
 
 验收流程：
 1. 默认通知列表中标题跳转浙江大学官方 URL；打开 Progress 后，尚未核对的日期只进入“线索”，不成为任务。

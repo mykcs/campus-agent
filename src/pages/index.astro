@@ -1,0 +1,38 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Topbar from '../components/Topbar.astro';
+import FeedView from '../components/FeedView.astro';
+import ProgressView from '../components/ProgressView.astro';
+import AskView from '../components/AskView.astro';
+import SourcesView from '../components/SourcesView.astro';
+import Footer from '../components/Footer.astro';
+import FollowDialog from '../components/FollowDialog.astro';
+import ModelDialog from '../components/ModelDialog.astro';
+import TaskDialog from '../components/TaskDialog.astro';
+---
+<SiteLayout title="Campus Agent — 你的校园信息" description="按照自己关注的学院和主题阅读大学官方公开通知，并使用自己的 AI 模型查找信息。" app>
+  <Fragment slot="head">
+    <script is:inline src="/display-date.js" defer></script>
+    <script is:inline src="/source-core.js" defer></script>
+    <script is:inline src="/app.js" defer></script>
+    <script is:inline src="/taskboard-core.js" defer></script>
+    <script is:inline src="/taskboard.js" defer></script>
+  </Fragment>
+<div class="app block min-h-screen min-[701px]:grid">
+  <Sidebar />
+  <div class="workspace flex min-w-0 min-h-screen flex-col">
+    <Topbar />
+    <main class="main">
+      <FeedView />
+      <ProgressView />
+      <AskView />
+      <SourcesView />
+    </main>
+    <Footer />
+  </div>
+</div>
+<FollowDialog />
+<ModelDialog />
+<TaskDialog />
+</SiteLayout>

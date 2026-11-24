@@ -34,7 +34,7 @@
 公开大学网站 → campus-agent-data（GitHub Actions 定时采集）
                      │  public data/notices.json
                      ▼
-Campus Agent 网站（Vercel Hobby，静态页面 / 可选 API）
+Campus Agent 网站（Vercel Hobby，Astro 静态构建 / 可选 API）
     ├── 浏览器公开公告搜索与关注（零 AI 费用）
     ├── 浏览器 localStorage 的个人任务与 Progress（零 AI 费用）
     ├── 浏览器即时生成一次性 .ics / Google 日历模板
@@ -43,20 +43,22 @@ Campus Agent 网站（Vercel Hobby，静态页面 / 可选 API）
 
 公开数据的独立仓库：[mykcs/campus-agent-data](https://github.com/mykcs/campus-agent-data)。数据提交只更新另一个 GitHub 仓库，不触发本网站 Vercel 重建。**只修改网站代码或主动部署网站，才产生新的 Vercel build/deployment。** 没有 Cloudflare、私人校园账户抓取，也没有强制模型费用。
 
+## 给 Agent 读
+
+网站的 [只读阅读页](https://campus-agent-sigma.vercel.app/agent/) 提供 `llms.txt`、同源结构化 `agent/site.json` 及阅读规约。目录不含个人关注、任务或模型凭据；真实通知以学校原文与独立公开数据源为准。维护目录时修改 `public/llms.txt`，执行 `npm run agent:index` 更新 JSON；现有 `npm run check` 拒绝不一致的生成物。
+
 ## 运行与测试
 
-需要现代浏览器和 Node.js（测试推荐 Node 22+），不需要额外的 npm 运行依赖。
+需要现代浏览器、Node.js（以 package.json engines 为准）和 npm。使用 Astro 静态输出及 Tailwind CSS 4；不在浏览器中引入新的 UI 框架运行时。现有 `public/styles.css` 是语义设计 token 的唯一 owner，Tailwind 工具类从同一尺度读取，不启用会改变现有控件默认样式的 Preflight。网站输出为 `dist/`，原有 `/api/chat.js` 仍由 Vercel 承载。
 
 ```bash
-python3 -m http.server 3000 --directory public
-# 打开 http://localhost:3000
-node --check public/app.js
-node --check public/taskboard-core.js
-node --check public/taskboard.js
-node --test tests/taskboard-core.test.cjs
+npm ci
+npm run dev
+npm run check
+npm run test:browser
 ```
 
-本地 Chrome/Playwright 环境还可运行 `node tests/taskboard-browser.cjs` 验证通知跳转、任务确认、剩余天数、完成状态持久化、ICS 下载和移动端无横向溢出。测试脚本中的浏览器路径依赖 Mac 开发环境；跨平台运行需调整路径或安装浏览器。真实模型连接、Google OAuth、iOS 原生导入是**独立测试**，不能由本地模拟代替。
+浏览器测试对实际构建产物执行 Chromium/WebKit 的 1440×900 桌面、440×956 DPR3 触控手机和 390px 窄屏回归。检查各业务视图、弹窗、日期、ICS、个人状态和 Agent 静态目录；Chromium 另测离线 shell。测试使用合成公开数据，不调用实际模型服务、Google OAuth 或 iOS 原生日历。生产受保护站点需独立授权读回验证。
 
 ## 文档体系
 

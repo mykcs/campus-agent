@@ -1,0 +1,25 @@
+---
+import '../styles/tailwind.css';
+interface Props { title: string; description: string; app?: boolean }
+const { title, description, app = false } = Astro.props;
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {app && <meta name="theme-color" content="#fafaf8">}
+  <meta name="description" content={description}>
+  <title>{title}</title>
+  {app && <link rel="help" href="/agent/">}
+  <link rel="alternate" type="application/json" href="/agent/site.json" title="结构化网站目录">
+  <link rel="alternate" type="text/plain" href="/llms.txt">
+  {app && <link rel="manifest" href="/manifest.webmanifest">}
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <slot name="head" />
+</head>
+<body>
+  <slot />
+</body>
+</html>

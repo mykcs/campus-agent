@@ -1,0 +1,12 @@
+<dialog id="modelDialog" class="modal model-modal" aria-labelledby="modelTitle">
+  <form id="modelForm" method="dialog" class="modal-content">
+    <div class="modal-heading"><div><div class="eyebrow">BRING YOUR OWN KEY</div><h2 id="modelTitle">接入自己的模型</h2><p>模型不是 Campus Agent 的后台服务。由你提供 API Key，按需调用。</p></div><button type="button" class="close-button" id="closeModel" aria-label="关闭模型设置">×</button></div>
+    <label class="field">提供商<select id="providerSelect"><option value="kimi">Kimi / Moonshot AI</option><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="custom">自定义 OpenAI 兼容 API</option></select></label>
+    <label class="field">API Base URL<input id="baseUrlInput" type="url" spellcheck="false" required placeholder="https://api.example.com/v1"></label>
+    <label class="field">模型 ID<input id="modelInput" spellcheck="false" autocomplete="off" required placeholder="例如：模型服务商提供的 ID"></label>
+    <label class="field">API Key<input id="apiKeyInput" type="password" spellcheck="false" autocomplete="off" placeholder="只在当前网页会话内使用"></label>
+    <p class="help-text">Key 不写入浏览器持久存储或公开仓库；默认服务由 Vercel 一次性转发，自定义接口由浏览器直连（需要支持 CORS）。模型服务可能收费。</p>
+    <div id="modelFeedback" class="form-feedback" role="status"></div>
+    <div class="modal-actions"><button type="button" id="clearModel" class="secondary-button">清除模型</button><button type="submit" class="primary-button">保存本次会话</button></div>
+  </form>
+</dialog>
