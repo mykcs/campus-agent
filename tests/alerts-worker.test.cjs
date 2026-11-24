@@ -1,0 +1,20 @@
+const {test}=require("node:test");
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+test("service worker renders push safely and only opens official links",async()=>{
+ const handlers={},shown=[],opened=[];
+ const self={location:{origin:"https://pilot.example.vercel.app"},addEventListener(name,handler){handlers[name]=handler;},registration:{showNotification:async(title,opts)=>shown.push({title,opts})},clients:{openWindow:async(url)=>opened.push(url)}};
+ vm.runInNewContext(fs.readFileSync(require.resolve("../public/sw.js"),"utf8"),{self,URL});
+ const push=async(payload)=>{let result;handlers.push({data:{json:()=>payload},waitUntil(x){result=x;}});await result;};
+ await push({version:1,body:"Synthetic public notice",tag:"a".repeat(32),url:"https://oge.mit.edu/funding/test"});
+ assert.equal(shown[0].opts.data.url,"https://oge.mit.edu/funding/test");
+ await push({version:1,body:"Ignore",url:"https://mit.edu.evil.invalid/"});
+ assert.equal(shown[1].opts.data.url,"/");
+ assert.notEqual(shown[1].opts.body,"Ignore");
+ let result,closed=0;
+ handlers.notificationclick({notification:{data:{url:"javascript:bad"},close(){closed++;}},waitUntil(x){result=x;}});
+ await result;assert.equal(opened[0],"https://pilot.example.vercel.app/");assert.equal(closed,1);
+ handlers.notificationclick({notification:{data:{url:shown[0].opts.data.url},close(){}},waitUntil(x){result=x;}});
+ await result;assert.equal(opened[1],"https://oge.mit.edu/funding/test");
+});

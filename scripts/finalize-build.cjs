@@ -21,7 +21,7 @@ const sw = fs.readFileSync(file, 'utf8');
 const manifest = JSON.stringify(assets);
 assert.ok(sw.includes('/* BUILD_ASSETS */ []'), 'service worker asset marker absent');
 const revision = createHash('sha256');
-for (const name of ['index.html','styles.css','app.js','display-date.js','taskboard-core.js','taskboard.js','icon.svg','sw.js',...assets.map(a=>a.slice(1))]) {
+for (const name of ['index.html','styles.css','app.js','source-core.js','push-settings.js','display-date.js','taskboard-core.js','taskboard.js','icon.svg','sw.js',...assets.map(a=>a.slice(1))]) {
   revision.update(name).update(fs.readFileSync(path.join(root,name)));
 }
 const cacheRevision=revision.digest('hex').slice(0,16);
