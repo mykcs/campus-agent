@@ -8,7 +8,7 @@
 
 ## 概念与生命周期
 
-`Notice` 来自大学公开索引：`id, title, url, published_at, department_id, date_candidates`。它**不是**待办。自动抽取的日期只进“发现的日期线索”，带 `verified:false`。
+`Notice` 来自大学公开索引：`id, title, url, published_at, department_id, date_candidates` 与可选 `date_events`。它**不是**待办。自动抽取的日期只进“发现的日期线索”，带 `verified:false`。优先消费同一官方 URL 的类型化事件；保留同日不同角色与申请范围。未解析日期、开始日和未知类型不预填截止日。旧版 date_candidates 仍兼容。
 
 `DeadlineTask` 由用户点击“从通知创建”并阅读官方来源后生成：
 
@@ -22,6 +22,7 @@
   "publishedAt": "2026-10-20",
   "deadlineDate": "2026-11-20",
   "deadlineTime": "20:00",
+  "deadlineTimezone": "Asia/Singapore",
   "notes": "确认针对哪类博士申请",
   "status": "todo",
   "createdAt": "<ISO UTC>",
@@ -43,7 +44,7 @@
 | 剩余天数 = 0 且非 done | 今天截止 | 由日期计算 |
 | 剩余天数 ＞ 0 且非 done | 还剩 N 天 | 由日期计算 |
 
-日期差采用 SGT 日历日（UTC+08:00、全年不使用夏令时），只关心日期而不是用户浏览器的本地午夜。进度条按 `publishedAt → deadlineDate` 的 **时间经过比例** 绘制，绝不表示任务工作完成百分比。对于候选日期不绘制已确认任务条。
+日期差采用用户确认的截止时区日历日，而不是浏览器本地午夜；旧任务缺少 `deadlineTimezone` 时仍采用 SGT。支持 SGT、美东、美西、UTC 及明确 UTC 偏移。未明确时区需选择；夏令时重复或不存在的本地时刻必须核对明确偏移后才允许保存。当天明确时刻已经过去则标记已到截止时间；日期任务不猜测午夜。进度条按 `publishedAt → deadlineDate` 的 **时间经过比例** 绘制，绝不表示任务工作完成百分比。对于候选日期不绘制已确认任务条。
 
 “今日看板”包含 7 天内未完成、逾期和手动标记进行中的事项；完成状态留在 Progress 列表。日期变化按用户打开/刷新时重新计算；本地存储不是后台推送服务。
 
@@ -54,7 +55,7 @@
 ## .ics / Google Calendar
 
 - `download .ics`：在当前浏览器生成所有**已核对**任务的 RFC5545 `VEVENT`，`UID` 稳定，`DTSTAMP`、`SUMMARY`、`DESCRIPTION` 和官网 URL 保留。
-- 全天事件 `DTSTART;VALUE=DATE` 起始日期含当日，`DTEND;VALUE=DATE` 为**次日（排他）**；确认了小时则把 SGT 转成 UTC `YYYYMMDDTHHMMSSZ`。
+- 全天事件 `DTSTART;VALUE=DATE` 起始日期含当日，`DTEND;VALUE=DATE` 为**次日（排他）**；确认了小时则按所确认时区转成 UTC `YYYYMMDDTHHMMSSZ`；Google 模板使用相同 UTC 时间。
 - 完成状态不作为外部可双向更新的待办；导出只发生一次，之后网站修改日期不会自动更新已导入事件。重复导入也可能产生重复日程，具体以日历客户端为准。
 - Google 按钮打开 Google Calendar 的 TEMPLATE 链接，仍需用户主动保存；不是 OAuth 长期连接。
 - Apple Calendar 官方支持订阅 **只读** `.ics` URL，但当前网站部署受 Vercel Authentication 保护，且个人任务只存在浏览器中，因此**不存在可供 Apple 自动拉取的私人订阅 URL**。
@@ -66,3 +67,5 @@
 外部日历读回 completion 是另一套 OAuth/CalDAV 集成，成本明显高于只读订阅，不属于目前承诺。
 
 测试依赖：`tests/taskboard-core.test.cjs`、`tests/taskboard-browser.cjs`。
+
+`evidenceKey/evidenceRole/evidenceScope` 为本地线索关联，不是校方核实结果；同一通知同日不同角色可分别建立任务。无公告日期时明确展示开始跟踪日，不伪造发布时间。已有 `tasks:v1` 不重写。

@@ -1,7 +1,7 @@
 <section class="view" id="progressView" hidden>
         <div class="eyebrow">DEADLINES, NOT JUST DATES</div>
         <h1>申请进度</h1>
-        <p class="page-desc">从官方通知形成待办，按发布日期到截止日期显示进度。日期经过你核对后才计入任务。</p>
+        <p class="page-desc">从官方通知形成待办，按发布日期到截止日期显示进度。日期和时区经过你核对后才计入任务；剩余天数按所确认时区的日历日计算。</p>
         <div class="task-controls"><button type="button" id="newProgressTask" class="follow-button">＋ 从通知创建任务</button><button type="button" id="exportTaskCalendar" class="task-secondary">↓ 导出我的日历 .ics</button></div>
         <p class="task-footnote">这是一次性日历文件导出，不是持续同步的订阅链接。完成状态仅保存在当前浏览器；正式日期以学校原文为准。</p>
         <div id="todaySummary" class="today-summary" aria-live="polite"></div>
@@ -10,6 +10,6 @@
         <div class="task-heading"><div><span class="task-eyebrow">APPLICATION WINDOWS</span><h2>Progress · 申请窗口</h2></div><span id="progressCount" class="result-count"></span></div>
         <div id="progressList" class="progress-list"></div>
         <div class="task-heading"><div><span class="task-eyebrow">REQUIRES VERIFICATION</span><h2>发现的日期线索</h2></div></div>
-        <p class="task-footnote">自动提取的日期可能是开放日、报名开始日或其他安排。点击官方原文核对后，才能把它加入任务。</p>
+        <p class="task-footnote">自动提取的日期可能是报名开始、截止、邮戳或其他安排。尚未确定年份、时刻和适用对象的线索需要手动核对；它们不会自动计入任务。</p>
         <div id="candidateList" class="candidate-list"></div>
       </section>
