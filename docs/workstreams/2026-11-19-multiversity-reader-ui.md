@@ -1,6 +1,6 @@
-# MIT / 清华 / 浙大多学校关注与安全官方跳转 [Task spec only]
+# MIT / 清华 / 浙大多学校关注与安全官方跳转 [Implementation candidate]
 
-> Status: Draft · TASK SPEC ONLY · Implementation: NOT DONE
+> Status: Draft · UI candidate · browser and real-source acceptance pending
 > Workstream: multisite-reader-ui · Size: M · Confidence: 中
 
 ## 目标及原因
@@ -38,6 +38,6 @@
 
 ## 证据与进度
 - 规格审查：站点源码已观察到 ZJU 域名写死，真实三校浏览器端流程未实现。
-- 实施：NOT DONE
-- 集成验收：NOT RUN
+- 实施：数据驱动学校/学院/来源目录，保留 v1 关注，学校/学院/主题并集；统一官网域名验证与无误跳转，旧 ZJU HTTP 公开链接保留；MIT/清华真实来源仍待数据 PR。
+- 集成验收：候选分支待核心与 browser 验收；跨时区任务时间的确认/转换以及真实三校数据读取仍待完成。
 - 最近核对：2026-11-19 PT；PR head 待读回。

@@ -43,6 +43,10 @@ Campus Agent 网站（Vercel Hobby，静态页面 / 可选 API）
 
 公开数据的独立仓库：[mykcs/campus-agent-data](https://github.com/mykcs/campus-agent-data)。数据提交只更新另一个 GitHub 仓库，不触发本网站 Vercel 重建。**只修改网站代码或主动部署网站，才产生新的 Vercel build/deployment。** 没有 Cloudflare、私人校园账户抓取，也没有强制模型费用。
 
+## 给 Agent 读
+
+网站的 [只读阅读页](https://campus-agent-sigma.vercel.app/agent/) 提供 `llms.txt`、同源结构化 `agent/site.json` 及阅读规约。目录不含个人关注、任务或模型凭据；真实通知以学校原文与独立公开数据源为准。维护目录时修改 `public/llms.txt`，执行 `npm run agent:index` 更新 JSON；现有 `npm run check` 拒绝不一致的生成物。
+
 ## 运行与测试
 
 需要现代浏览器和 Node.js（测试推荐 Node 22+），不需要额外的 npm 运行依赖。
