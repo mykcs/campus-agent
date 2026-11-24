@@ -16,7 +16,7 @@ test('calendar display keeps precision and the SGT year boundary without changin
   assert.equal(Display.sourceDay('2026-06-07T01:30:00Z'),'2026年6月7日');
 });
 test('guard rejects detached routes and raw mixed expressions while keeping the narrow accessible icon treatment',()=>{
-  const html=fs.readFileSync('public/index.html','utf8'),css=fs.readFileSync('public/styles.css','utf8');
+  const html=fs.readFileSync('dist/index.html','utf8'),css=fs.readFileSync('public/styles.css','utf8');
   assert.deepEqual(inspectHtml(html,css),[]);
   assert.ok(inspectHtml(html.replace('/styles.css','/isolated.css'),css).length);
   assert.ok(inspectHtml(html,':root{--campus-design-version:1}').length);
@@ -25,7 +25,7 @@ test('guard rejects detached routes and raw mixed expressions while keeping the 
 });
 
 test('reader route shares design without loading the private application',()=>{
-  const css=fs.readFileSync('public/styles.css','utf8'),html=fs.readFileSync('public/agent/index.html','utf8');
+  const css=fs.readFileSync('public/styles.css','utf8'),html=fs.readFileSync('dist/agent/index.html','utf8');
   assert.deepEqual(inspectHtml(html,css,'agent/index.html'),[]);
   assert.ok(inspectHtml(html,css).length);
   assert.ok(inspectHtml(html.replace('/agent/reader.js','/app.js'),css,'agent/index.html').length);

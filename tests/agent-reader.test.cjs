@@ -2,7 +2,7 @@ const {test} = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const read = name => fs.readFileSync(path.join(__dirname, "../public", name), "utf8");
+const read = name => fs.readFileSync(path.join(__dirname, "../dist", name), "utf8");
 test("reader is discoverable and only reads approved static files", () => {
   const home = read("index.html");
   const reader = read("agent/index.html");

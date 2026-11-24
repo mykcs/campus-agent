@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const http = require("node:http");
-const root = path.resolve(__dirname, "../public");
+const root = path.resolve(__dirname, "../dist");
 const read = name => fs.readFileSync(path.join(root, name), "utf8");
 const expected = ["llms.txt", "agent/SKILL.md"].map(name => read(name).trimEnd()).join("\n\n---\n\n") + "\n";
 const types = {".html":"text/html; charset=utf-8",".css":"text/css",".js":"application/javascript",".txt":"text/plain; charset=utf-8",".md":"text/plain; charset=utf-8",".svg":"image/svg+xml",".json":"application/json; charset=utf-8"};

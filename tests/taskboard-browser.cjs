@@ -6,7 +6,7 @@ const Core=require("../public/taskboard-core.js");
 
 (async()=>{
   fs.mkdirSync("test-results",{recursive:true});
-  const root=path.resolve(__dirname,"../public");
+  const root=path.resolve(__dirname,"../dist");
   const server=http.createServer((req,res)=>{
     const pathname=new URL(req.url,"http://127.0.0.1").pathname;
     const target=path.resolve(root,"."+ (pathname==="/"?"/index.html":pathname));

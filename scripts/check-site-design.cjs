@@ -33,9 +33,9 @@ function inspectHtml(html,css,route="index.html"){
 }
 function check(){
   const css=fs.readFileSync('public/styles.css','utf8');
-  const errors=styleViolations(css,true),htmls=filesBelow('public').filter(file=>file.endsWith('.html'));
+  const errors=styleViolations(css,true),htmls=filesBelow('dist').filter(file=>file.endsWith('.html'));
   if(!htmls.length)throw Error('No HTML routes');
-  for(const file of htmls)errors.push(...inspectHtml(fs.readFileSync(file,'utf8'),css,path.relative('public',file).split(path.sep).join('/')).map(error=>file+': '+error));
+  for(const file of htmls)errors.push(...inspectHtml(fs.readFileSync(file,'utf8'),css,path.relative('dist',file).split(path.sep).join('/')).map(error=>file+': '+error));
   for(const file of filesBelow('public').filter(file=>file.endsWith('.css')&&file!=='public/styles.css'))errors.push(...styleViolations(fs.readFileSync(file,'utf8')).map(error=>file+': '+error));
   const app=fs.readFileSync('public/app.js','utf8'),tasks=fs.readFileSync('public/taskboard.js','utf8');
   if(!app.includes('CampusDisplay.sourceDay(value)')||!app.includes('CampusDisplay.instant(value)')||!tasks.includes('CampusDisplay.calendar'))errors.push('A visible date consumer lost the shared formatter');

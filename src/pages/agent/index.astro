@@ -1,18 +1,9 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Campus Agent 只读网站导航与可复制的 Agent 阅读上下文。">
-  <title>给 Agent 读 · Campus Agent</title>
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="alternate" type="text/plain" href="/llms.txt">
-  <link rel="alternate" type="application/json" href="/agent/site.json" title="结构化网站目录">
-  <script src="/agent/reader.js" defer></script>
-</head>
-<body>
-  <main class="main agent-reader" id="main">
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+---
+<SiteLayout title="给 Agent 读 · Campus Agent" description="Campus Agent 只读网站导航与可复制的 Agent 阅读上下文。">
+  <script slot="head" is:inline src="/agent/reader.js" defer></script>
+  <main class="main agent-reader grid gap-campus-24 content-start" id="main">
     <a class="agent-back" href="/">← 返回 Campus Agent</a>
     <header>
       <div class="eyebrow">READ-ONLY CONTEXT</div>
@@ -44,5 +35,4 @@
       <p>官方原文才是申请条件与截止日期的依据。目录本身不证明 Agent 已读取通知正文，也不授权提交申请或写入个人日历。</p>
     </aside>
   </main>
-</body>
-</html>
+</SiteLayout>

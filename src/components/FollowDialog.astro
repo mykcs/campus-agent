@@ -1,0 +1,8 @@
+<dialog id="followDialog" class="modal" aria-labelledby="followTitle">
+  <form id="followForm" method="dialog" class="modal-content">
+    <div class="modal-heading"><div><div class="eyebrow">PERSONALIZE YOUR FEED</div><h2 id="followTitle">我的关注</h2><p>选择学院的全部公开通知，并可以额外订阅跨学院的主题。设置仅保存在当前浏览器。</p></div><button type="button" class="close-button" id="closeFollow" aria-label="关闭关注设置">×</button></div>
+    <div class="modal-section"><div class="modal-section-head"><h3>学校与学院</h3><small>可同时选择多个</small></div><div class="school-label">浙江大学 <span>已开放来源优先</span></div><div id="departmentChoices" class="choice-list"></div><div class="unavailable-schools">MIT、清华大学的公开来源正在规划，尚未纳入监测。</div></div>
+    <div class="modal-section"><div class="modal-section-head"><h3>额外关注的主题</h3><small>跨学院查找</small></div><div id="topicChoices" class="choice-list"></div><p class="help-text">例如：即使只关注人工智能学院，也可以额外关注全校范围内已收录的奖学金消息。当前覆盖范围由实际来源决定。</p></div>
+    <div class="modal-actions"><button class="secondary-button" id="resetFocus" type="button">恢复默认</button><button class="primary-button" type="submit">保存关注</button></div>
+  </form>
+</dialog>

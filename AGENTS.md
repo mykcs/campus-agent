@@ -19,7 +19,7 @@ Scope: `mykcs/campus-agent` only. This repository owns the website and personal 
 ## Code ownership
 | Area | Canonical owner |
 | --- | --- |
-| UI and campus follows | `public/index.html`, `public/styles.css`, `public/app.js` |
+| UI and campus follows | `src/pages/index.astro`, `src/components/`, `src/layouts/SiteLayout.astro`, `public/styles.css`, `src/styles/tailwind.css`, `public/app.js` |
 | Personal application tasks and status | `public/taskboard.js` |
 | Day arithmetic / calendar export | `public/taskboard-core.js` |
 | BYOK single-request API | `api/chat.js` |
@@ -29,7 +29,7 @@ Scope: `mykcs/campus-agent` only. This repository owns the website and personal 
 | Product UX / design decisions | `docs/design/` |
 
 ## Verification before PR/merge
-- Run `node --test tests/taskboard-core.test.cjs`, syntax checks on modified JS and `git diff --check`.
+- Run `npm ci`, `npm run check` (Astro type/build + existing tests), `npm run test:browser` against the built `dist/` and `git diff --check`. Do not serve raw public assets as the complete website.
 - For UX changes, run the local Chromium smoke test when a browser is available and confirm desktop/mobile no page errors or horizontal overflow. Browser test needs local Playwright/Chrome and is not a hosted CI requirement.
 - For any calendar feature, test SGT date boundaries, remaining-days counts, overdue/done, RFC5545 calendar export (including exclusive end), same-origin data handling, and persistence.
 - Do not consider code pushed, PR opened or Vercel build complete until relevant readback/testing succeeds; document unknowns explicitly.

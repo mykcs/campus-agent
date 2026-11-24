@@ -1,0 +1,22 @@
+<section class="view" id="feedView">
+        <div class="eyebrow">YOUR CAMPUS, YOUR SIGNAL</div>
+        <div class="heading-line">
+          <div><h1>你的校园动态</h1><p class="page-desc">从官方公开渠道获取消息，只看你真正关心的学院与主题。</p></div>
+        </div>
+        <div class="search-line">
+          <label class="search-box"><span class="search-icon">⌕</span><input id="searchInput" type="search" autocomplete="off" placeholder="搜索通知、学院、奖学金、博士招生…" aria-label="搜索校园通知"></label>
+          <button class="follow-button" id="editFeedFocus" type="button"><span>✳</span> 设置我的关注</button>
+        </div>
+        <div class="focus-summary" id="followSummary"><span class="loading">正在加载我的关注…</span></div>
+        <div class="feed-switch" role="group" aria-label="通知范围">
+          <button type="button" data-feed="follow" class="feed-tab selected" aria-pressed="true">我的关注 <span id="followCount"></span></button>
+          <button type="button" data-feed="all" class="feed-tab" aria-pressed="false">全部公开通知</button>
+        </div>
+        <div id="categoryFilters" class="category-filters" aria-label="通知类别"></div>
+        <div class="section-title">
+          <div><h2 id="listTitle">最新通知</h2><span id="resultCount" class="result-count"></span></div>
+          <button id="sortButton" class="sort-button" type="button">最新优先 ↓</button>
+        </div>
+        <div id="noticeFeed" class="notice-feed"><div class="empty">正在载入官方通知…</div></div>
+        <div class="feed-foot"><span id="dataAsOf">正在检查数据时间</span><button type="button" id="viewSourcesLink">查看来源和覆盖范围 ↗</button></div>
+      </section>

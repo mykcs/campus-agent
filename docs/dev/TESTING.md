@@ -15,7 +15,7 @@ node --test tests/taskboard-core.test.cjs
 git diff --check
 ~~~
 
-预期：JS 语法全部成功、RFC5545 / 日期 / 任务验证单测全过、无 Git whitespace 错误。静态网站无需 Next.js 构建步骤。
+预期：JS 语法、Astro 类型检查及静态构建成功，RFC5545 / 日期 / 任务验证单测全过，无 Git whitespace 错误。全站测试消费 `dist/`，而非开发源码中的空 public 目录。完整本地验证使用 `npm run check`。
 
 ## 实际浏览器回归
 
