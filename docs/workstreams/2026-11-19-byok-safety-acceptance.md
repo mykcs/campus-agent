@@ -40,3 +40,7 @@
 - 实施：NOT DONE
 - 集成验收：NOT RUN
 - 最近核对：2026-11-19 PT；head 以 PR 为准。
+
+## 2026-11-24 implementation and remaining live acceptance
+
+The server rejects unreviewed hosts/paths, redirect following, cross-origin requests, oversized real UTF-8 payloads and control characters in credentials. Sources supplied to the server must point to the reviewed official university domains. Provider errors are mapped to non-secret messages. Browser-direct fetch rejects redirects; a blank Key may reuse the in-memory Key only for the same provider and exact base URL. Changing provider/address requires re-entering it. Automated tests use fake keys and mocked fetch only (including 401/402/403/429/500, abort and invalid responses). Real model invocation has not been authorized or performed: NOT RUN; no provider compatibility or billing guarantee. The deployable safety changes are independently useful; real provider verification remains a tracked acceptance item.
