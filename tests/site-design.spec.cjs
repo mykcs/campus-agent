@@ -3,13 +3,20 @@ const fs=require('node:fs');
 const Core=require('../public/taskboard-core.js');
 const Display=require('../public/display-date.js');
 const {filesBelow}=require('../scripts/check-site-design.cjs');
-const routes=filesBelow('public').filter(file=>file.endsWith('.html')).map(file=>'/'+file.slice(7).replace(/index\.html$/,''));
+const routes=filesBelow('dist').filter(file=>file.endsWith('.html')).map(file=>'/'+file.slice(5).replace(/index\.html$/,''));
 const today=Core.sgtToday(),deadline=Core.addDays(today,2),start=Core.addDays(today,-3);
 const source='https://ai.zju.edu.cn/2026/1020/c90497a3216866/page.htm';
 const payload={version:2,checked_at:'2026-12-31T16:00:00Z',errors:[],sources:[{id:'zju-ai-admissions',name:'浙江大学人工智能学院 · 招生通知',status:'ok',count:1,url:'https://ai.zju.edu.cn/zstz/list1.htm'}],notices:[{id:'standards-notice',title:'浙江大学人工智能学院2027年博士研究生招生简章',url:source,department:'人工智能学院',department_id:'zju-ai',school:'浙江大学',category:'博士招生',topics:['admissions'],source_id:'zju-ai-admissions',published_at:start,excerpt:'博士招生条件与申请办法以官方原文为准。',date_candidates:[{value:deadline+'T20:00',context:'申请日期线索，需要本人核对学校官方通知。',verified:false}]}]};
 async function audit(page){
   const result=await page.evaluate(()=>{
-    const root=getComputedStyle(document.documentElement),body=getComputedStyle(document.body),errors=[];
+    const luminance=rgb=>{const a=rgb.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return a[0]*.2126+a[1]*.7152+a[2]*.0722};
+    const contrastErrors=[];
+    for(const el of document.querySelectorAll('.page-desc,.eyebrow,.notice-meta,.task-footnote,.progress-span,.source-info small,.source-disclaimer,.privacy-caption,.footer,.breadcrumb,.result-count,.task-eyebrow,.candidate-context')){
+      if(!el.getBoundingClientRect().height||el.closest('[hidden],dialog:not([open])')||!el.textContent.trim())continue;
+      const fg=luminance(getComputedStyle(el).color),bg=luminance('rgb(250, 250, 248)');
+      if((Math.max(bg,fg)+.05)/(Math.min(bg,fg)+.05)<4.5)contrastErrors.push({class:el.className,color:getComputedStyle(el).color});
+    }
+    const root=getComputedStyle(document.documentElement),body=getComputedStyle(document.body),errors=contrastErrors;
     const sizeNames=['meta','caption','body','lead','section','subtitle','dialog','title','title-mobile'];
     const allowed=sizeNames.map(name=>parseFloat(root.getPropertyValue('--text-'+name))*parseFloat(root.fontSize));
     const families=['--font-body','--font-heading'].map(name=>{const e=document.createElement('span');e.style.fontFamily=`var(${name})`;document.body.append(e);const v=getComputedStyle(e).fontFamily;e.remove();return v;});
@@ -55,14 +62,16 @@ async function perturb(page,selector,token,value,property){
   if(property==='maxWidth'){expect(Math.abs(result.afterWidth-result.beforeWidth)).toBeGreaterThan(.5);expect(result.restoredWidth).toBeCloseTo(result.beforeWidth,1);}
   return result;
 }
-for(const route of routes)for(const width of [1440,440,390])test(`${route} ${width}px: all views and dialogs share real design and date consumers`,async({page},info)=>{
-  test.setTimeout(90000);await page.setViewportSize({width,height:956});await page.emulateMedia({reducedMotion:'reduce'});
+for(const width of [1440,440,390])test.describe(width+'px device',()=>{
+  test.use({viewport:{width,height:width===1440?900:956},deviceScaleFactor:width===1440?1:3,isMobile:width!==1440,hasTouch:width!==1440});
+  for(const route of routes)test(`${route} ${width}px: all views and dialogs share real design and date consumers`,async({page},info)=>{
+  test.setTimeout(90000);await page.setViewportSize({width,height:width===1440?900:956});await page.emulateMedia({reducedMotion:'reduce'});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/mykcs/campus-agent-data/main/data/notices.json*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload),headers:{'access-control-allow-origin':'*'}}));
   await page.goto(route);
   if(route==='/agent/'){
     await expect(page.locator('#copy-context')).toBeEnabled();
-    const expected=['llms.txt','agent/SKILL.md'].map(name=>fs.readFileSync('public/'+name,'utf8').trimEnd()).join('\n\n---\n\n')+'\n';
+    const expected=['llms.txt','agent/SKILL.md'].map(name=>fs.readFileSync('dist/'+name,'utf8').trimEnd()).join('\n\n---\n\n')+'\n';
     await expect(page.locator('#reader-context')).toHaveValue(expected);
     const measurement=await audit(page),probes=[];
     probes.push(await perturb(page,'.agent-reader h1',width<=700?'--text-title-mobile':'--text-title','31px','fontSize'));
@@ -78,8 +87,22 @@ for(const route of routes)for(const width of [1440,440,390])test(`${route} ${wid
   await expect(page.locator('#dataAsOf')).toContainText('2027年1月1日 00:00 SGT (UTC+8)');
   await expect(page.locator('.notice-main-link')).toHaveAttribute('href',source);
   const states=[],probes=[];
+  // All navigation controls stay inside the screen; the active view is exposed to assistive tech.
+  const navigation=await page.locator('.side-nav').evaluate(nav=>({
+    viewport:innerWidth, scrollWidth:nav.scrollWidth, clientWidth:nav.clientWidth,
+    items:[...nav.querySelectorAll('button')].map(b=>({width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height,left:b.getBoundingClientRect().left,right:b.getBoundingClientRect().right}))
+  }));
+  expect(navigation.scrollWidth).toBeLessThanOrEqual(navigation.clientWidth+1);
+  for(const item of navigation.items){expect(item.left).toBeGreaterThanOrEqual(0);expect(item.right).toBeLessThanOrEqual(width+1);if(width<=700)expect(item.height).toBeGreaterThanOrEqual(44);}
+  await expect(page.locator('[data-view="feed"]')).toHaveAttribute('aria-current','page');
+  await page.locator('[data-view="progress"]').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#progressView')).toBeVisible();
+  await expect(page.locator('[data-view="progress"]')).toHaveAttribute('aria-current','page');
+  await page.locator('[data-view="feed"]').click();
   for(const view of ['feed','progress','sources','ask']){
     await page.locator(`[data-view="${view}"]`).click();
+    await expect(page.locator('[data-view="'+view+'"]')).toHaveAttribute('aria-current','page');
     states.push({name:view,measurement:await audit(page)});
     probes.push(await perturb(page,'.view:not([hidden]) h1',width<=700?'--text-title-mobile':'--text-title','31px','fontSize'));
     probes.push(await perturb(page,'.view:not([hidden]) .page-desc','--text-caption','17px','fontSize'));
@@ -115,6 +138,32 @@ for(const route of routes)for(const width of [1440,440,390])test(`${route} ${wid
   await page.locator('#progressList .task-status').selectOption('done');await page.reload();await expect(page.locator('#resultCount')).toHaveText('1 条');await page.locator('[data-view="progress"]').click();await expect(page.locator('#progressList')).toContainText('已完成');
   expect(errors).toEqual([]);
   await info.attach('actual-design-consumers',{contentType:'application/json',body:Buffer.from(JSON.stringify({route,width,states,probes,rawTask},null,2))});
+});
+});
+
+test('compiled Astro/Tailwind home shell still works offline',async({browser,browserName})=>{
+  test.skip(browserName!=='chromium','Chromium offline service-worker integration');
+  const context=await browser.newContext({baseURL:'http://127.0.0.1:'+(process.env.CAMPUS_TEST_PORT||8882),serviceWorkers:'allow',viewport:{width:440,height:956},deviceScaleFactor:3,isMobile:true,hasTouch:true});
+  try{
+    const page=await context.newPage(),errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    await page.route('**/mykcs/campus-agent-data/main/data/notices.json*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload),headers:{'access-control-allow-origin':'*'}}));
+    await page.goto('/');
+    await expect(page.locator('#resultCount')).toHaveText('1 条');
+    await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
+    const cached=await page.evaluate(async()=>{const names=await caches.keys(),cache=await caches.open(names.find(n=>n.startsWith('campus-agent-shell-v4:')));return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+    expect(cached).toContain('/index.html');expect(cached.some(p=>p.startsWith('/_astro/')&&p.endsWith('.css'))).toBe(true);
+    expect(cached.some(p=>p.startsWith('/api/'))).toBe(false);
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.locator('#feedView')).toBeVisible();
+    expect(await page.locator('.workspace').evaluate(e=>getComputedStyle(e).display)).toBe('flex');
+    expect(await page.locator('.app').evaluate(e=>getComputedStyle(e).display)).toBe('block');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.locator('[data-view="progress"]').click();
+    await expect(page.locator('#progressView')).toBeVisible();
+    expect(errors).toEqual([]);
+  } finally{await context.close();}
 });
 
 // Cross-school fixture only: no claim of production MIT/Tsinghua ingestion.

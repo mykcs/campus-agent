@@ -10,7 +10,7 @@
 | [Dev](dev/README.md) | 架构、数据合同、测试与技术决策 | [系统架构](dev/ARCHITECTURE.md) |
 | [Design](design/README.md) | 信息架构、视觉表达和交互规范 | [Progress UX](design/PROGRESS-UX.md) |
 
-**源码是真实执行入口**：`public/app.js`（通知）、`public/taskboard.js`（进度与任务）、`public/taskboard-core.js`（日期/ICS）、`api/chat.js`（BYOK）。
+**页面源**：`src/pages/`、`src/layouts/` 与 `src/components/`；`npm run build` 生成 `dist/`。**业务源码是真实执行入口**：`public/app.js`（通知）、`public/taskboard.js`（进度与任务）、`public/taskboard-core.js`（日期/ICS）、`api/chat.js`（BYOK）。
 
 **数据源不在本仓库**：[campus-agent-data](https://github.com/mykcs/campus-agent-data) 有独立的采集脚本、定时工作流和数据质量证据。该仓库提交不应触发 Vercel 网站重新部署。
 

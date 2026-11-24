@@ -116,7 +116,11 @@ function showView(view){
   for(const x of ["feed","progress","ask","sources"]){
     $(x+"View").hidden=x!==view;
   }
-  document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===view));
+  document.querySelectorAll("[data-view]").forEach(x=>{
+    const current=x.dataset.view===view;
+    x.classList.toggle("active",current);
+    if(current)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");
+  });
   $("currentViewName").textContent={feed:"我的动态",progress:"进度与今日任务",ask:"校园问答",sources:"数据来源"}[view]||"";
   window.scrollTo({top:0,behavior:"instant"});
   if(view==="sources")renderSources();
@@ -159,20 +163,21 @@ function noticeRow(item){
   link.setAttribute("aria-label","前往学校官方公告："+item.title);
   const actions=element("div","notice-row-actions");
   const track=element("button","task-one","＋ 跟踪");
-  track.type="button";track.title="核对截止日期后跟踪此公告";
+  track.type="button";track.title="核对截止日期后跟踪此公告";track.setAttribute("aria-label","跟踪："+item.title);
   track.addEventListener("click",()=>{
     showView("progress");
     window.CampusTaskBoard?.openDialog({noticeId:item.id});
   });
   actions.append(track);
   const ask=element("button","ask-one","AI 解读");
-  ask.type="button";ask.title="向校园 Agent 询问这条通知";
+  ask.type="button";ask.title="向校园 Agent 询问这条通知";ask.setAttribute("aria-label","AI 解读："+item.title);
   ask.addEventListener("click",()=>{
     showView("ask");
     $("chatInput").value="请帮我解释这条通知的要求和日期，引用官方来源："+item.title;
     $("chatInput").focus();
   });
-  actions.append(ask,officialLink("↗",item.url,"go-official"));
+  const official=officialLink("↗",item.url,"go-official");official.setAttribute("aria-label","打开官方原文："+item.title);
+  actions.append(ask,official);
   article.append(link,actions);
   return article;
 }

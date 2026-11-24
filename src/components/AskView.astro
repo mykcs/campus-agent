@@ -1,0 +1,13 @@
+<section class="view" id="askView" hidden>
+        <div class="eyebrow">ASK CAMPUS AGENT</div>
+        <h1>问问校园 Agent</h1><p class="page-desc">先查公开来源；连接你自己的 Kimi 或其他模型后，可以进一步解读官方通知。</p>
+        <div class="chat-shell">
+          <div class="chat-top"><span class="chat-avatar">✳</span><div><strong>公开通知问答</strong><small id="assistantProvider">未配置模型 · 使用本地检索</small></div><button class="mini-button" id="openModelChat" type="button">接入我的模型 ↗</button></div>
+          <div id="chatLog" class="chat-log" aria-live="polite">
+            <div class="message agent-message"><small>Campus Agent</small><p>你好，我可以帮你从已收录的学校官方通知中找信息。没有接入模型时只检索标题、内容和官方链接；不会擅自认定你的申请资格。</p></div>
+          </div>
+          <div class="question-examples"><button type="button" data-question="浙江大学 2027 博士招生有哪些公告？">2027博士招生 ↗</button><button type="button" data-question="奖学金和资助通知有哪些？">奖学金通知 ↗</button></div>
+          <form id="chatForm" class="chat-form"><input id="chatInput" autocomplete="off" maxlength="1600" required placeholder="输入你的问题…"><button id="sendButton" type="submit">发送 ↗</button></form>
+          <p class="privacy-caption">AI 只使用你本次选择的模型服务；内容由学校原文决定。私有学生数据未接入。</p>
+        </div>
+      </section>
