@@ -33,7 +33,12 @@ jobs:
 
   browser:
     runs-on: ubuntu-24.04
+    # Reuse the exact browser image qualified in repository browser CI.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
     timeout-minutes: 20
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - name: Checkout tested commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -49,8 +54,8 @@ jobs:
           printf '{"sha":"%s","run":"%s"}\n' "$EXPECTED_SHA" "$GITHUB_RUN_ID" > test-results/source.json
       - name: Install pinned test dependencies
         run: npm ci
-      - name: Install acceptance browsers
-        run: npx playwright install --with-deps chromium webkit
+      - name: Verify preinstalled browser revisions match the locked package
+        run: node -e "const fs=require('node:fs');const {chromium,webkit}=require('playwright');for(const b of [chromium,webkit])if(!fs.existsSync(b.executablePath()))throw Error('Missing locked browser: '+b.executablePath())"
       - name: Every route and view, actual shared styles and task regressions
         run: npm run test:browser
       - name: Keep exact candidate evidence
