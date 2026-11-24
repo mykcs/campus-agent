@@ -117,6 +117,42 @@ for(const route of routes)for(const width of [1440,440,390])test(`${route} ${wid
   await info.attach('actual-design-consumers',{contentType:'application/json',body:Buffer.from(JSON.stringify({route,width,states,probes,rawTask},null,2))});
 });
 
+// Cross-school fixture only: no claim of production MIT/Tsinghua ingestion.
+for(const width of [1440,440])test("mixed school follows and dynamic coverage at "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:956});
+  const failures=[];page.on("pageerror",e=>failures.push(e.message));
+  const mix={...payload,checked_at:new Date().toISOString(),
+    sources:[...payload.sources,
+      {id:"zju-history-aid",name:"历史学院学生资助",url:"https://ls.zju.edu.cn/65208/list.htm",status:"ok"},
+      {id:"mit-oge-funding",name:"MIT graduate funding",url:"https://oge.mit.edu/funding/",status:"partial"},
+      {id:"tsinghua-cs-public",name:"计算机系公开通知",url:"https://www.cs.tsinghua.edu.cn/",status:"degraded"}],
+    notices:[...payload.notices,
+      {id:"history-fixture",title:"历史学院助学金 fixture",school:"浙江大学",department:"历史学院",department_id:"zju-history",source_id:"zju-history-aid",url:"https://ls.zju.edu.cn/fixture.htm",topics:["scholarships"],published_at:start,date_candidates:[]},
+      {id:"mit-fixture",title:"MIT funding fixture",school:"MIT",department:"Graduate education",department_id:"mit-oge",source_id:"mit-oge-funding",url:"https://oge.mit.edu/funding/fixture/",topics:["scholarships"],published_at:start,date_candidates:[]},
+      {id:"thu-fixture",title:"清华奖学金 fixture",school:"清华大学",department:"计算机系",department_id:"tsinghua-cs",source_id:"tsinghua-cs-public",url:"https://www.cs.tsinghua.edu.cn/fixture.htm",topics:["scholarships"],published_at:start,date_candidates:[]},
+      {id:"unsafe-fixture",title:"Unsafe fake",source_id:"mit-oge-funding",url:"https://mit.edu.invalid/fixture",topics:["scholarships"],published_at:start}]};
+  await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",r=>r.fulfill({status:200,contentType:"application/json",body:JSON.stringify(mix),headers:{"access-control-allow-origin":"*"}}));
+  await page.addInitScript(()=>{if(!localStorage.getItem("campus-agent:follows:v1"))localStorage.setItem("campus-agent:follows:v1",JSON.stringify({departments:["zju-ai"],topics:[]}));});
+  await page.goto("/");
+  await expect(page.locator("#resultCount")).toHaveText("1 条");
+  await page.locator("#editTopFocus").click();
+  await expect(page.locator('input[name="department"][value="zju-ai"]')).toBeChecked();
+  await page.locator('input[name="school"][value="mit"]').check();
+  await page.locator('input[name="topic"][value="scholarships"]').check();
+  await page.locator("#followForm .primary-button").click();
+  await expect(page.locator("#resultCount")).toHaveText("4 条");
+  await expect(page.locator('.notice-main-link').filter({hasText:"MIT funding fixture"})).toHaveAttribute("href","https://oge.mit.edu/funding/fixture/");
+  await expect(page.locator(".notice-row").filter({hasText:"Unsafe fake"})).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("#resultCount")).toHaveText("4 条");
+  await page.locator('[data-view="sources"]').click();
+  await expect(page.locator(".source-row").filter({hasText:"历史学院学生资助"})).toContainText("已接入");
+  await expect(page.locator(".source-row").filter({hasText:"MIT graduate funding"})).toContainText("部分覆盖");
+  await expect(page.locator(".source-row").filter({hasText:"计算机系公开通知"})).toContainText("采集异常");
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  expect(failures).toEqual([]);
+});
+
 // Regression: a provider switch cannot inherit a previous provider's key.
 test('BYOK key is bound to the configured endpoint',async({page})=>{
   await page.route('**/mykcs/campus-agent-data/main/data/notices.json*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload),headers:{'access-control-allow-origin':'*'}}));
