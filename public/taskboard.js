@@ -36,13 +36,10 @@
     }
   }
   function officialLink(label,url,cls){
+    const href=window.CampusSources?.officialURL(url);
+    if(!href)return element("span",cls,label);
     const a=element("a",cls,label);
-    try{
-      const u=new URL(url);
-      if(u.protocol!=="https:"||!u.hostname.endsWith(".zju.edu.cn"))throw Error();
-      a.href=u.href;
-    }catch{a.href="https://ai.zju.edu.cn/zstz/list1.htm";}
-    a.target="_blank";a.rel="noopener noreferrer";
+    a.href=href;a.target="_blank";a.rel="noopener noreferrer";
     return a;
   }
   function countSummary(){

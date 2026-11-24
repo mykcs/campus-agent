@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "check": "npm run build && astro check && node --check public/app.js && node --check public/taskboard.js && node --check public/display-date.js && node --check public/taskboard-core.js && node --check api/chat.js && node --check public/agent/reader.js && node --test tests/taskboard-core.test.cjs tests/site-design.test.cjs tests/agent-reader.test.cjs && node scripts/check-site-design.cjs && node scripts/generate-agent-index.cjs --check",
+    "check": "npm run build && astro check && node --check public/source-core.js && node --check public/app.js && node --check public/taskboard.js && node --check public/display-date.js && node --check public/taskboard-core.js && node --check api/chat.js && node --check public/agent/reader.js && node --test tests/taskboard-core.test.cjs tests/site-design.test.cjs tests/agent-reader.test.cjs tests/source-core.test.cjs tests/byok.test.cjs && node scripts/check-site-design.cjs && node scripts/generate-agent-index.cjs --check",
     "test:browser": "npm run build && playwright test && node tests/taskboard-browser.cjs && node tests/agent-reader-browser.cjs",
     "agent:index": "node scripts/generate-agent-index.cjs",
     "dev": "astro dev",

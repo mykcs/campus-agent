@@ -1,7 +1,7 @@
 const BUILD_ASSETS = /* BUILD_ASSETS */ [];
 const REVISION = /* BUILD_REVISION */ "development";
 const CACHE = "campus-agent-shell-v4:" + REVISION;
-const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/display-date.js", "/taskboard-core.js", "/taskboard.js", "/icon.svg", ...BUILD_ASSETS];
+const SHELL = ["/", "/index.html", "/styles.css", "/app.js", "/source-core.js", "/display-date.js", "/taskboard-core.js", "/taskboard.js", "/icon.svg", ...BUILD_ASSETS];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));
   self.skipWaiting();
