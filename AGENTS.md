@@ -37,3 +37,5 @@ Scope: `mykcs/campus-agent` only. This repository owns the website and personal 
 - Work on a topic branch; follow this repository's current Git protections and existing authorization. Site production deployment requires target and protected access checks; do not modify the separate data project to disguise a failure.
 
 Avoid dumping full folder contents into this router. Link the relevant docs and use the current code/tests as execution truth.
+
+For material page/feature changes, resolve the relevant [Feature Design](docs/design/features/README.md) (intent and realization), preserve source-backed essential outcomes, then actively compare and verify a better feasible design using the latest owner intent, technology and evidence. Do not freeze the old implementation or infer approval from a passing test.

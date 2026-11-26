@@ -21,3 +21,5 @@
 | Governance | AGENTS, Wish, Design, Dev and independent notice data owner retain their separate roles. |
 
 The map does not certify production, permissions or reader behavior by itself.
+
+Feature goals and current/better design: [Feature Design](../design/features/README.md). This is part of Design, not a separate governance owner.
