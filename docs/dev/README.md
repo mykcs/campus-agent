@@ -21,3 +21,5 @@
 | Governance | AGENTS, Wish, Design, Dev and independent notice data owner retain their separate roles. |
 
 The map does not certify production, permissions or reader behavior by itself.
+
+Feature-level goals and protected semantics: [Intent](../intent/README.md). This file retains its existing ownership and history.

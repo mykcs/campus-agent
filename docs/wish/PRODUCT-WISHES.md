@@ -55,3 +55,5 @@
 **2026-11-20 的当前参考：** [nuro.dev](https://nuro.dev/) 的悬停、图标比例和空间组织。只是观察的优秀案例，不是唯一参考、照搬方案、动画参数/框架命令；以后更好的通知阅读与任务看板设计可以替代它。
 
 后续实现应先沿用 `docs/design/` 和实际前端 owner，做真实桌面与 440px 手机对比，测试 focus-visible、触控、减少动态效果、无溢出/布局抖动和任务语义不变。仍优先完成 P0 官方来源核对与确认式任务逻辑，维持 BYOK 与隐私规则。**此 PR 只记录 P1 意愿，不意味着已上线功能。**
+
+Feature-level goals and protected semantics: [Intent](../intent/README.md). This file retains its existing ownership and history.
