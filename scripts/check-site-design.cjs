@@ -24,7 +24,7 @@ function inspectHtml(html,css,route="index.html"){
   if(!/<link\b[^>]*rel="stylesheet"[^>]*href="\/styles.css"/.test(html)||!css.includes('--campus-design-version:1')||!css.includes('font-size:var(--text-body)')||!css.includes('padding:var(--space-'))errors.push('Detached shared stylesheet or actual consumer');
   const isReader=route==='agent/index.html';
   if(isReader){
-    if(!/<script src="\/agent\/reader.js" defer><\/script>/.test(html)||/<script src="\/(?:app|taskboard(?:-core)?|display-date)\.js"/.test(html))errors.push('Static reader must not load private application or calendar state');
+    if(!/<script src="\/agent\/reader.js" defer><\/script>/.test(html)||/<script src="\/(?:app|taskboard(?:-core)?|backup-(?:core|ui)|display-date)\.js"/.test(html))errors.push('Static reader must not load private application or calendar state');
   }else if(!/<script src="\/display-date.js" defer><\/script>/.test(html))errors.push('Missing shared calendar display boundary');
   const inline=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(x=>x[1]).join('\n');
   errors.push(...styleViolations(inline));

@@ -288,3 +288,44 @@ for(const width of [1440,440])test("confirmed date roles, missing timezone and d
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
+
+for(const width of [1440,440])test("local JSON backup roundtrip and explicit safe restore "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:956});
+  await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",r=>r.fulfill({status:200,contentType:"application/json",body:JSON.stringify(payload),headers:{"access-control-allow-origin":"*"}}));
+  const initial={id:"task_existing",noticeId:"legacy",title:"本机已完成任务",officialUrl:source,publishedAt:start,deadlineDate:deadline,deadlineTime:"",status:"done",completedAt:new Date().toISOString(),notes:"synthetic private note"};
+  const added={...initial,id:"task_imported",title:"外校邮戳任务",officialUrl:"https://oge.mit.edu/funding/fixture/",deadlineTimezone:"America/New_York",deadlineTime:"20:00",status:"todo",completedAt:null,evidenceRole:"postmark",evidenceKey:"test",evidenceScope:"Funding"};
+  await page.addInitScript(({initial})=>{
+    if(!localStorage.getItem("campus-agent:tasks:v1"))localStorage.setItem("campus-agent:tasks:v1",JSON.stringify([initial]));
+    localStorage.setItem("unrelated-private-test","SECRET_NOT_EXPORTED");
+  },{initial});
+  await page.goto("/");
+  await page.locator('[data-view="progress"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("1 项");
+  const downloading=page.waitForEvent("download");await page.locator("#exportBackup").click();
+  const download=await downloading;let body="";for await(const chunk of await download.createReadStream())body+=chunk.toString();
+  const exported=JSON.parse(body);expect(exported.tasks[0].status).toBe("done");expect(body).not.toContain("SECRET_NOT_EXPORTED");
+  await page.locator("#openBackup").click();
+  await page.locator("#backupFile").setInputFiles({name:"bad.json",mimeType:"application/json",buffer:Buffer.from("{")});
+  await expect(page.locator("#backupPreview")).toContainText("文件无效");
+  await expect(page.locator("#applyBackup")).toBeDisabled();
+  const input={...exported,tasks:[{...initial,status:"doing"},added],follows:{schools:["mit"],departments:[],topics:["scholarships"]}};
+  await page.locator("#backupFile").setInputFiles({name:"valid.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(input))});
+  await expect(page.locator("#backupPreview")).toContainText("ID 冲突 1 项");
+  await expect(page.locator("#applyBackup")).toBeDisabled();
+  await page.locator("#backupMode").selectOption("replace");
+  await expect(page.locator("#backupPreview")).toContainText("替换模式");
+  await page.locator("#backupMode").selectOption("merge");
+  await page.locator("#backupConfirmed").check();
+  await expect(page.locator("#applyBackup")).toBeEnabled();
+  await Promise.all([page.waitForNavigation(),page.locator("#applyBackup").click()]);
+  await page.locator('[data-view="progress"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("2 项");
+  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("campus-agent:tasks:v1")));
+  expect(saved.find(t=>t.id==="task_existing").status).toBe("done");
+  expect(saved.find(t=>t.id==="task_imported").deadlineTimezone).toBe("America/New_York");
+  expect(saved.find(t=>t.id==="task_imported").evidenceRole).toBe("postmark");
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("campus-agent:follows:v1")).schools)).toEqual(["mit"]);
+  await page.locator("#openBackup").click();await page.locator("#backupFile").setInputFiles({name:"valid.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(input))});
+  await expect(page.locator("#backupPreview")).toContainText("合并新增 0 项");
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});

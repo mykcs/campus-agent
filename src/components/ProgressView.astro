@@ -4,6 +4,7 @@
         <p class="page-desc">从官方通知形成待办，按发布日期到截止日期显示进度。日期和时区经过你核对后才计入任务；剩余天数按所确认时区的日历日计算。</p>
         <div class="task-controls"><button type="button" id="newProgressTask" class="follow-button">＋ 从通知创建任务</button><button type="button" id="exportTaskCalendar" class="task-secondary">↓ 导出我的日历 .ics</button></div>
         <p class="task-footnote">这是一次性日历文件导出，不是持续同步的订阅链接。完成状态仅保存在当前浏览器；正式日期以学校原文为准。</p>
+        <div class="task-controls"><button type="button" id="exportBackup" class="task-secondary">↓ 备份任务与关注（JSON）</button><button type="button" id="openBackup" class="task-secondary">恢复本地备份</button></div><p id="backupNotice" class="task-footnote" role="status">备份文件包含任务与关注，不含 AI Key；请自行妥善保存。不会上传或自动同步。</p>
         <div id="todaySummary" class="today-summary" aria-live="polite"></div>
         <div class="task-heading"><div><span class="task-eyebrow">TODAY'S BOARD</span><h2>今日看板</h2></div><span id="todayCount" class="result-count"></span></div>
         <div id="todayTaskBoard" class="today-board"></div>

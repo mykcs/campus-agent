@@ -69,3 +69,7 @@
 测试依赖：`tests/taskboard-core.test.cjs`、`tests/taskboard-browser.cjs`。
 
 `evidenceKey/evidenceRole/evidenceScope` 为本地线索关联，不是校方核实结果；同一通知同日不同角色可分别建立任务。无公告日期时明确展示开始跟踪日，不伪造发布时间。已有 `tasks:v1` 不重写。
+
+## Local portable backup (WP13/A13)
+
+`campus-agent-local-backup` version 1 is a private user-owned JSON file containing only validated follows and task fields (legacy implicit SGT and explicit deadlineTimezone/evidence preserved). It is not an ICS file, user account or continuous sync. Unknown fields, untrusted school URLs, invalid task dates/IDs, duplicate IDs, over-limit records/files and unsupported versions fail closed. Export reads only the two task/follow keys, never model state/credentials. Import previews before consent: default merge keeps existing conflicting IDs, unions follows, and adds new tasks; explicit replacement discloses deletion and requires confirmation. Before write, compare the actual two localStorage values to preview; attempt rollback on partial write and state uncertainty explicitly. This is a browser-local operation, not a cross-tab distributed atomic transaction. The file may contain personal notes: keep it private. No network upload.
