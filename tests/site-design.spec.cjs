@@ -288,3 +288,34 @@ for(const width of [1440,440])test("confirmed date roles, missing timezone and d
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
+
+for(const width of [1440,440])test("activity topic is a cross-school union and persists "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:956});
+  const fixture={...payload,checked_at:new Date().toISOString(),health:{status:"healthy"},notices:[
+    ...payload.notices,
+    {id:"zju-real-activity-fixture",title:"浙江大学材料学院特色实践活动申报（公开索引样本）",url:"https://mse.zju.edu.cn/2026/1115/c51031a3227447/page.htm",department_id:"zju-mse",source_id:"zju-mse-student",published_at:start,topics:["activities"],category:"活动"},
+    {id:"mit-activity-fixture",title:"MIT funding workshop fixture",url:"https://oge.mit.edu/funding/fixture/",department_id:"mit-oge",source_id:"mit-oge-funding",published_at:start,topics:["activities","scholarships"],category:"奖助"},
+    {id:"thu-activity-fixture",title:"清华招生夏令营 fixture",url:"https://www.sigs.tsinghua.edu.cn/fixture.htm",department_id:"tsinghua-sigs",source_id:"tsinghua-sigs-admissions",published_at:start,topics:["admissions","activities"],category:"招生"},
+    {id:"unknown-fixture",title:"Campus event fixture intentionally unclassified",url:"https://www.sigs.tsinghua.edu.cn/unknown.htm",department_id:"tsinghua-sigs",source_id:"tsinghua-sigs-admissions",published_at:start,topics:[],category:"通知"}
+  ]};
+  const errors=[];page.on("pageerror",e=>errors.push(e.message));
+  await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",r=>r.fulfill({status:200,contentType:"application/json",body:JSON.stringify(fixture),headers:{"access-control-allow-origin":"*"}}));
+  await page.goto("/");
+  await expect(page.locator("#resultCount")).toHaveText("1 条");
+  await page.locator("#editTopFocus").click();
+  await page.locator('input[name="topic"][value="activities"]').check();
+  await page.locator('#followForm button[type="submit"]').click();
+  await expect(page.locator("#resultCount")).toHaveText("4 条");
+  await page.getByRole("button",{name:"校园活动",exact:true}).click();
+  await expect(page.locator("#resultCount")).toHaveText("3 条");
+  await expect(page.locator(".notice-row").filter({hasText:"MIT funding workshop"})).toHaveCount(1);
+  await expect(page.locator(".notice-row").filter({hasText:"清华招生夏令营"})).toHaveCount(1);
+  await expect(page.locator(".notice-row").filter({hasText:"intentionally unclassified"})).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("#resultCount")).toHaveText("4 条");
+  await page.locator("#editTopFocus").click();
+  await expect(page.locator('input[name="department"][value="zju-ai"]')).toBeChecked();
+  await expect(page.locator('input[name="topic"][value="activities"]')).toBeChecked();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+});
