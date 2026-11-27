@@ -156,7 +156,7 @@ test('compiled Astro/Tailwind home shell still works offline',async({browser,bro
     await page.goto('/');
     await expect(page.locator('#resultCount')).toHaveText('1 条');
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
-    const cached=await page.evaluate(async()=>{const names=await caches.keys(),cache=await caches.open(names.find(n=>n.startsWith('campus-agent-shell-v4:')));return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+    const cached=await page.evaluate(async()=>{const names=(await caches.keys()).filter(n=>n.startsWith('campus-agent-shell-'));if(names.length!==1)throw Error('Expected exactly one active shell cache');const cache=await caches.open(names[0]);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
     expect(cached).toContain('/index.html');expect(cached.some(p=>p.startsWith('/_astro/')&&p.endsWith('.css'))).toBe(true);
     expect(cached.some(p=>p.startsWith('/api/'))).toBe(false);
     await context.setOffline(true);
@@ -225,4 +225,66 @@ test('BYOK key is bound to the configured endpoint',async({page})=>{
   await expect(page.locator('#modelFeedback')).toContainText('Key');
   const saved=await page.evaluate(()=>JSON.stringify({...localStorage}));
   expect(saved).not.toContain('TEST_ONLY_FAKE_KEY');
+});
+
+
+for(const width of [1440,440])test("confirmed date roles, missing timezone and distinct same-day tasks "+width+"px",async({page})=>{
+  await page.setViewportSize({width,height:956});
+  const mitUrl="https://oge.mit.edu/funding/fixture/";
+  const thuUrl="https://www.cs.tsinghua.edu.cn/fixture.htm";
+  const ev=(url,type,value,raw,scope,zone=null,resolution="explicit")=>({source_url:url,type,value,raw,scope_text:scope,timezone:zone,resolution,verified:false});
+  const fixture={...payload,checked_at:new Date().toISOString(),notices:[
+    {...payload.notices[0],date_events:[ev(source,"close",deadline+"T20:00",deadline,"春季申请"),ev(source,"postmark",deadline,deadline,"材料邮戳","SGT"),ev(source,"open",deadline+"T09:00",deadline,"秋季申请")]},
+    {id:"mit-evidence",title:"MIT deadline fixture",school:"MIT",department:"Graduate education",department_id:"mit-oge",source_id:"mit-oge-funding",url:mitUrl,topics:["scholarships"],published_at:start,date_events:[ev(mitUrl,"close",deadline+"T20:00",deadline,"Funding",null)]},
+    {id:"thu-evidence",title:"清华日期 fixture",school:"清华大学",department:"计算机系",department_id:"tsinghua-cs",source_id:"tsinghua-cs-public",url:thuUrl,topics:["admissions"],published_at:start,date_events:[ev(thuUrl,"close",null,"9月10日24:00","申请","SGT","unresolved_time")]}
+  ]};
+  const errors=[];page.on("pageerror",e=>errors.push(e.message));
+  await page.route("**/mykcs/campus-agent-data/main/data/notices.json*",route=>route.fulfill({status:200,contentType:"application/json",body:JSON.stringify(fixture),headers:{"access-control-allow-origin":"*"}}));
+  await page.goto("/");
+  await expect(page.locator("#resultCount")).toHaveText("1 条");
+  await page.locator('[data-view="progress"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("0 项");
+  await expect(page.locator("#candidateList")).toContainText("邮戳期限");
+  await expect(page.locator("#candidateList")).toContainText("9月10日24:00");
+  const candidate=text=>page.locator(".candidate-row").filter({hasText:text});
+  await candidate("秋季申请").locator("button").click();
+  await expect(page.locator("#taskDueDate")).toHaveValue("");
+  await page.locator("#cancelTask").click();
+  await candidate("清华日期 fixture").locator("button").click();
+  await expect(page.locator("#taskDueDate")).toHaveValue("");
+  await page.locator("#cancelTask").click();
+  await candidate("MIT deadline fixture").locator("button").click();
+  await expect(page.locator("#taskZone")).toHaveValue("");
+  await expect(page.locator("#taskVerified")).not.toBeChecked();
+  await page.locator("#taskZone").selectOption("America/New_York");
+  await page.locator("#taskVerified").check();
+  await page.locator('#taskForm button[type="submit"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("1 项");
+  const mitTask=await page.evaluate(()=>JSON.parse(localStorage.getItem("campus-agent:tasks:v1"))[0]);
+  expect(mitTask.deadlineTimezone).toBe("America/New_York");
+  const google=new URL(await page.locator(".task-calendar-link").first().getAttribute("href"));
+  expect(google.searchParams.get("ctz")).toBe("America/New_York");
+  await candidate("春季申请").locator("button").click();
+  await page.locator("#taskZone").selectOption("Asia/Singapore");
+  await page.locator("#taskVerified").check();
+  await page.locator('#taskForm button[type="submit"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("2 项");
+  await candidate("材料邮戳").locator("button").click();
+  await expect(page.locator("#taskDueDate")).toHaveValue(deadline);
+  await expect(page.locator("#taskDueTime")).toHaveValue("");
+  await expect(page.locator("#taskZone")).toHaveValue("Asia/Singapore");
+  await expect(page.locator("#taskVerified")).not.toBeChecked();
+  await page.locator("#taskVerified").check();
+  await page.locator('#taskForm button[type="submit"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("3 项");
+  const allTasks=await page.evaluate(()=>JSON.parse(localStorage.getItem("campus-agent:tasks:v1")));
+  expect(allTasks[2].deadlineTime).toBe("");
+  expect(allTasks[2].evidenceRole).toBe("postmark");
+  expect(allTasks[1].evidenceRole).toBe("close");
+  expect(new Set(allTasks.map(t=>t.id)).size).toBe(3);
+  await page.reload();
+  await page.locator('[data-view="progress"]').click();
+  await expect(page.locator("#progressCount")).toHaveText("3 项");
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
 });

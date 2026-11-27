@@ -10,6 +10,7 @@
   const $=id=>document.getElementById(id);
   let notices=[];
   let tasks=readTasks();
+  let activeEvidence=null;
 
   function element(tag,cls,text){
     const x=document.createElement(tag);
@@ -43,12 +44,12 @@
     return a;
   }
   function countSummary(){
-    const today=Core.sgtToday();
+    const now=new Date();
     const current=tasks.filter(t=>t.status!=="done");
-    const dueNow=current.filter(t=>Core.daysRemaining(t.deadlineDate,today)===0).length;
-    const overdue=current.filter(t=>Core.daysRemaining(t.deadlineDate,today)<0).length;
+    const dueNow=current.filter(t=>Core.statusKind(t,undefined,now)==="today").length;
+    const overdue=current.filter(t=>Core.statusKind(t,undefined,now)==="overdue").length;
     const soon=current.filter(t=>{
-      const d=Core.daysRemaining(t.deadlineDate,today);
+      const d=Core.taskDays(t,now);
       return d!==null&&d>=0&&d<=7;
     }).length;
     const completed=tasks.filter(t=>t.status==="done").length;
@@ -81,6 +82,7 @@
   function taskTitle(task){
     const div=element("div","task-title-col");
     div.append(officialLink(task.title,task.officialUrl,"task-title-link"));
+    if(task.evidenceRole||task.evidenceScope)div.append(element("span","task-notes","依据："+(Core.ROLE_LABELS[task.evidenceRole]||"待核对日期")+(task.evidenceScope?" · "+task.evidenceScope:"")));
     if(task.notes)div.append(element("span","task-notes",task.notes));
     return div;
   }
@@ -89,14 +91,14 @@
     return element("span","deadline-label "+kind,Core.dueLabel(task));
   }
   function renderToday(){
-    const today=Core.sgtToday();
+    const now=new Date(),today=Core.sgtToday(now);
     const upcoming=tasks.filter(t=>{
-      const days=Core.daysRemaining(t.deadlineDate,today);
+      const days=Core.taskDays(t,now);
       return (t.status!=="done"&&(days!==null&&days<=7||t.status==="doing"))||
         (t.status==="done"&&t.completedAt&&Core.sgtToday(new Date(t.completedAt))===today);
     });
     upcoming.sort((a,b)=>(a.status==="done"?1:0)-(b.status==="done"?1:0)||
-      Core.daysRemaining(a.deadlineDate,today)-Core.daysRemaining(b.deadlineDate,today));
+      Core.taskDays(a,now)-Core.taskDays(b,now));
     $("todayCount").textContent=upcoming.length+" 项";
     const area=$("todayTaskBoard");area.replaceChildren();
     if(!upcoming.length){
@@ -126,7 +128,7 @@
     }
     const sorted=[...tasks].sort((a,b)=>(a.status==="done"?1:0)-(b.status==="done"?1:0)||
       a.deadlineDate.localeCompare(b.deadlineDate));
-    const today=Core.sgtToday();
+    const now=new Date();
     for(const task of sorted){
       const card=element("article","progress-card"+(task.status==="done"?" task-is-done":""));
       const head=element("div","progress-card-head");
@@ -137,7 +139,7 @@
       const track=element("div","progress-track");
       const fill=element("div","progress-fill "+Core.statusKind(task));
       const start=Core.dateOrdinal(task.publishedAt)>Core.dateOrdinal(task.deadlineDate)?task.deadlineDate:task.publishedAt;
-      const pct=Core.elapsedFraction(start,task.deadlineDate,today);
+      const pct=Core.elapsedFraction(start,task.deadlineDate,Core.taskToday(task,now));
       fill.style.width=pct+"%";
       const marker=element("div","progress-today-marker");
       marker.style.left=pct+"%";
@@ -146,8 +148,8 @@
       track.append(fill,marker);
       const span=element("div","progress-span");
       const display=CampusDisplay.calendar;
-      span.append(element("span","","公告："+display(start)),
-        element("span","","截止："+display(task.deadlineDate)+(task.deadlineTime?" "+task.deadlineTime+" SGT":" · 日期")));
+      span.append(element("span","",(task.startIsTracking?"开始跟踪：":"公告：")+display(start)),
+        element("span","","截止："+display(task.deadlineDate)+(task.deadlineTime?" "+task.deadlineTime:" · 日期")+" · "+Core.zoneLabel(Core.taskZone(task))));
       const action=element("div","progress-actions");
       action.append(statusSelect(task));
       const google=Core.googleCalendarUrl(task);
@@ -171,10 +173,10 @@
   }
   function renderCandidates(){
     const area=$("candidateList");area.replaceChildren();
-    const tracked=new Set(tasks.map(t=>t.noticeId+"|"+t.deadlineDate));
-    const candidates=Core.candidateDates(notices,{limit:25}).filter(c=>!tracked.has(c.noticeId+"|"+c.date)).slice(0,8);
+    const tracked=new Set(tasks.map(t=>t.evidenceKey).filter(Boolean));
+    const candidates=Core.candidateDates(notices,{limit:60}).filter(c=>!tracked.has(c.key)&&!(c.typed===false&&tasks.some(t=>!t.evidenceKey&&t.noticeId===c.noticeId&&t.deadlineDate===c.date&&String(t.deadlineTime||"")===c.time))).slice(0,25);
     if(!candidates.length){
-      const empty=element("div","candidate-empty","最近没有可展示的未来日期候选；这不代表学校没有新的申请截止日。");
+      const empty=element("div","candidate-empty","没有可展示的日期线索；这不代表学校没有新的申请截止日。");
       area.append(empty);
       return;
     }
@@ -182,15 +184,19 @@
       const row=element("div","candidate-row");
       const info=element("div","candidate-main");
       const meta=element("div","candidate-meta");
+      const unresolved={missing_year:"年份待核对",unresolved_time:"时刻待核对",invalid_date:"无有效日期",unknown:"日期待核对"};
       meta.append(element("span","candidate-tag","未核对的日期线索"),
-        element("span","",CampusDisplay.calendar(c.date)+(c.time?" "+c.time+" SGT":"")));
+        element("span","",c.roleLabel),
+        element("span","",c.date?CampusDisplay.calendar(c.date)+(c.time?" "+c.time:""):(c.raw||"日期不完整")+" · "+(unresolved[c.resolution]||"待核对")),
+        element("span","",c.reportedTimezone?("原文时区："+c.reportedTimezone):"时区待核对"));
       info.append(meta,officialLink(c.title,c.officialUrl,"candidate-title"));
+      if(c.scope)info.append(element("p","candidate-context","适用范围线索："+c.scope));
       if(c.context)info.append(element("p","candidate-context",c.context));
       const actions=element("div","candidate-actions");
       actions.append(officialLink("读原文 ↗",c.officialUrl,""));
-      const add=element("button","task-link-button","核对并跟踪");
+      const add=element("button","task-link-button",c.mayPrefill?"核对并跟踪":"核对后手填");
       add.type="button";
-      add.addEventListener("click",()=>openDialog({noticeId:c.noticeId,date:c.date,time:c.time}));
+      add.addEventListener("click",()=>openDialog({noticeId:c.noticeId,evidence:c,date:c.mayPrefill?c.date:"",time:c.mayPrefill?c.time:""}));
       actions.append(add);
       row.append(info,actions);
       area.append(row);
@@ -201,7 +207,30 @@
     $("exportTaskCalendar").disabled=!tasks.length;
     $("exportTaskCalendar").title=tasks.length?"下载一次性 .ics 文件（非自动订阅）":"先核对日期并添加任务";
   }
-  function openDialog({noticeId=null,date="",time=""}={}){
+  function updateSourceLink(){
+    const source=notices.find(n=>n.id===$("taskNoticeSelect").value), area=$("taskSourceLink");
+    area.replaceChildren();
+    if(source)area.append(officialLink("打开学校官方原文 ↗",source.url,""));
+  }
+  function setZone(value){
+    const select=$("taskZone");
+    for(const option of [...select.options])if(option.dataset.explicit==="true")option.remove();
+    const zone=Core.normalizeZone(value);
+    if(zone&&![...select.options].some(o=>o.value===zone)){
+      const option=element("option","",Core.zoneLabel(zone));option.value=zone;option.dataset.explicit="true";select.append(option);
+    }
+    select.value=zone||"";
+  }
+  function showEvidence(e){
+    const panel=$("taskEvidence");panel.replaceChildren();panel.hidden=!e;
+    if(e)panel.append(element("strong","","待核对线索："+e.roleLabel),
+      element("p","candidate-context",[e.scope,e.raw,e.context].filter(Boolean).join(" · ")),
+      element("p","candidate-context",e.mayPrefill?"预填仅供核对，仍需确认适用范围和时区。":"不是可直接采用的截止日；请阅读原文后手动填写。"));
+  }
+  function openDialog({noticeId=null,date="",time="",evidence=null}={}){
+    // Reset native input editors before populating a different task. In WebKit,
+    // clearing an optional time value alone can leave an invalid segmented editor.
+    $("taskForm").reset();
     const select=$("taskNoticeSelect");select.replaceChildren();
     if(!notices.length){
       const option=element("option","","没有可用的官方公告");
@@ -214,8 +243,11 @@
       select.append(option);
     }
     if(noticeId&&notices.some(x=>x.id===noticeId))select.value=noticeId;
+    activeEvidence=evidence;
     $("taskDueDate").value=date;
     $("taskDueTime").value=time;
+    setZone(evidence?.zone||"");
+    updateSourceLink();showEvidence(evidence);
     $("taskNotes").value="";
     $("taskVerified").checked=false;
     $("taskDialog").showModal();
@@ -225,22 +257,28 @@
     const source=notices.find(n=>n.id===$("taskNoticeSelect").value);
     const date=$("taskDueDate").value;
     const time=$("taskDueTime").value;
+    const zone=Core.normalizeZone($("taskZone").value);
     if(!source){$("taskFormError").textContent="请先选择一条官方通知。";return;}
+    if(!zone){$("taskFormError").textContent="请核对并选择截止日期所用的时区。";return;}
     if(Core.dateOrdinal(date)===null||!Core.validTime(time)){
       $("taskFormError").textContent="请填写有效的日期与时间。";return;
     }
+    if(time&&Core.deadlineEpoch(date,time,zone)===null){$("taskFormError").textContent="此时刻不存在或在夏令时回拨时重复；请核对原文并选择明确的 UTC 偏移。";return;}
     if(!$("taskVerified").checked){
       $("taskFormError").textContent="请阅读学校原文并确认已核对截止日期。";return;
     }
-    const published=Core.dateOrdinal(source.published_at)!==null?source.published_at:Core.sgtToday();
-    if(Core.dateOrdinal(date)<Core.dateOrdinal(published)){
+    if(tasks.length>=300){$("taskFormError").textContent="本地任务已达到 300 条上限，请先整理现有任务。";return;}
+    const knownPublication=Core.dateOrdinal(source.published_at)!==null;
+    const published=knownPublication?source.published_at:Core.todayInZone(zone);
+    if(knownPublication&&Core.dateOrdinal(date)<Core.dateOrdinal(published)){
       $("taskFormError").textContent="截止日期早于公告发布日期，请核对时间是否正确。";return;
     }
     const newTask={
       id:"task_"+(crypto.randomUUID?crypto.randomUUID().replace(/-/g,""):Math.random().toString(36).slice(2)),
       noticeId:source.id,title:String(source.title).slice(0,220),
       officialUrl:source.url,sourceId:source.source_id||"",
-      publishedAt:published,deadlineDate:date,deadlineTime:time,
+      publishedAt:knownPublication?published:(date<published?date:published),startIsTracking:!knownPublication,deadlineDate:date,deadlineTime:time,deadlineTimezone:zone,
+      ...(activeEvidence?.noticeId===source.id?{evidenceKey:activeEvidence.key,evidenceRole:activeEvidence.role,evidenceScope:activeEvidence.scope}:{}),
       notes:$("taskNotes").value.trim().slice(0,300),
       status:"todo",createdAt:new Date().toISOString(),confirmedAt:new Date().toISOString(),completedAt:null
     };
@@ -268,6 +306,8 @@
     $("closeTaskDialog").addEventListener("click",()=>$("taskDialog").close());
     $("cancelTask").addEventListener("click",()=>$("taskDialog").close());
     $("taskForm").addEventListener("submit",newTaskFromForm);
+    $("taskNoticeSelect").addEventListener("change",()=>{activeEvidence=null;showEvidence(null);updateSourceLink();$("taskDueDate").value="";$("taskDueTime").value="";setZone("");$("taskVerified").checked=false;});
+    for(const id of ["taskDueDate","taskDueTime","taskZone"])$(id).addEventListener("change",()=>{$("taskVerified").checked=false;});
     $("exportTaskCalendar").addEventListener("click",exportICS);
   }
   bind();

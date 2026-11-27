@@ -2,9 +2,13 @@
   <form id="taskForm" class="modal-content" method="dialog">
     <div class="modal-heading"><div><div class="eyebrow">PERSONAL APPLICATION TRACKER</div><h2 id="taskDialogTitle">跟踪官方通知</h2><p>核对官方原文后填写自己的截止日期。填写的信息不上传服务器。</p></div><button type="button" id="closeTaskDialog" class="close-button" aria-label="关闭任务">×</button></div>
     <label class="field">官方通知<select id="taskNoticeSelect" required></select></label>
-    <div class="task-form-row"><label class="field">截止日期（SGT）<input id="taskDueDate" type="date" required></label><label class="field">截止时间（可选，SGT）<input id="taskDueTime" type="time"></label></div>
+    <p id="taskSourceLink" class="help-text"></p>
+    <div id="taskEvidence" class="candidate-main" hidden></div>
+    <div class="task-form-row"><label class="field">截止日期<input id="taskDueDate" type="date" required></label><label class="field">截止时间（可选）<input id="taskDueTime" type="time"></label></div>
+    <label class="field">截止日期与时间的时区<select id="taskZone" required><option value="">请核对原文并选择</option><option value="Asia/Singapore">SGT / UTC+8</option><option value="America/New_York">美东 ET（含夏令时）</option><option value="America/Los_Angeles">美西 PT（含夏令时）</option><option value="UTC">UTC</option><option value="UTC-04:00">UTC−04:00</option><option value="UTC-05:00">UTC−05:00</option><option value="UTC-07:00">UTC−07:00</option><option value="UTC-08:00">UTC−08:00</option></select></label>
+    <p class="help-text">时区不明时不要猜测；未填写时间只按所选时区的日历日期计算，不视为午夜截止。</p>
     <label class="field">个人备注（可选）<input id="taskNotes" maxlength="300" placeholder="例如：先向学院确认推荐方式"></label>
-    <label class="task-confirm"><input type="checkbox" id="taskVerified" required><span>我已阅读官方通知并核对这个截止时间；知道它不代表系统自动确认申请资格。</span></label>
+    <label class="task-confirm"><input type="checkbox" id="taskVerified" required><span>我已阅读官方通知并核对适用对象、截止日期、时间及其时区；知道它不代表系统自动确认申请资格。</span></label>
     <p id="taskFormError" class="form-feedback" role="status"></p>
     <div class="modal-actions"><button type="button" id="cancelTask" class="secondary-button">取消</button><button type="submit" class="primary-button">加入 Progress</button></div>
   </form>

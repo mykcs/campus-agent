@@ -67,3 +67,45 @@ test("Google Calendar link is add-once, not a bidirectional sync",()=>{
   assert.equal(query.searchParams.get("action"),"TEMPLATE");
   assert.match(query.searchParams.get("details"),/学校官方来源|学校原文|官方来源/);
 });
+
+test("typed evidence retains roles and same-day application scopes, never guesses",()=>{
+  const url=task.officialUrl;
+  const rows=C.candidateDates([{id:"n1",title:"招生",url,date_candidates:[{value:"2026-11-22"}],date_events:[
+    {type:"open",value:"2026-11-22T09:00",resolution:"explicit",verified:false,source_url:url,scope_text:"甲"},
+    {type:"close",value:"2026-11-22T20:00",resolution:"explicit",verified:false,source_url:url,scope_text:"甲"},
+    {type:"postmark",value:"2026-11-22",resolution:"explicit",verified:false,source_url:url,scope_text:"乙"},
+    {type:"close",value:null,raw:"9月10日24:00",resolution:"unresolved_time",verified:false,source_url:url},
+    {type:"close",value:"2026-11-22",resolution:"explicit",verified:true,source_url:url},
+    {type:"close",value:"2026-11-22",resolution:"explicit",verified:false,source_url:"https://example.com/"}
+  ]}],{today:"2026-11-20"});
+  assert.equal(rows.length,4);
+  assert.equal(new Set(rows.map(r=>r.key)).size,4);
+  assert.equal(rows.find(r=>r.role==="open").mayPrefill,false);
+  assert.equal(rows.find(r=>r.role==="close"&&r.date).zone,"");
+  assert.equal(rows.find(r=>!r.date).mayPrefill,false);
+  assert.equal(rows.find(r=>!r.date).raw,"9月10日24:00");
+  assert.ok(rows.every(r=>r.verified===false));
+});
+test("explicit zones convert DST and cross-day deadlines without guessing",()=>{
+  const iso=(d,t,z)=>new Date(C.deadlineEpoch(d,t,z)).toISOString();
+  assert.equal(iso("2026-07-04","20:00","America/New_York"),"2026-07-05T00:00:00.000Z");
+  assert.equal(iso("2026-12-04","20:00","America/New_York"),"2026-12-05T01:00:00.000Z");
+  assert.equal(iso("2026-11-22","20:00","UTC-08:00"),"2026-11-23T04:00:00.000Z");
+  assert.equal(C.deadlineEpoch("2026-03-08","02:30","America/New_York"),null);
+  assert.equal(C.deadlineEpoch("2026-11-01","01:30","America/New_York"),null);
+  assert.equal(C.deadlineEpoch("2026-11-22","20:00",""),null);
+  const mit={...task,officialUrl:"https://oge.mit.edu/funding/",deadlineDate:"2026-11-22",deadlineTime:"20:00",deadlineTimezone:"America/New_York"};
+  assert.equal(C.validateTask(mit),true);
+  assert.equal(C.validateTask({...mit,deadlineTimezone:""}),false);
+  assert.equal(C.validateTask({...mit,deadlineDate:"2026-11-01",deadlineTime:"01:30"}),false);
+  assert.match(C.icsDocument([mit]),/DTSTART:20261123T010000Z/);
+  const google=new URL(C.googleCalendarUrl(mit));
+  assert.equal(google.searchParams.get("dates"),"20261123T010000Z/20261123T013000Z");
+  assert.equal(google.searchParams.get("ctz"),"America/New_York");
+  assert.equal(C.taskDays(mit,new Date("2026-11-22T16:01:00Z")),0);
+  assert.equal(C.dueLabel(mit,undefined,new Date("2026-11-23T01:01:00Z")),"已到截止时间");
+  assert.equal(C.statusKind(mit,undefined,new Date("2026-11-23T01:01:00Z")),"overdue");
+  assert.equal(C.dueLabel({...mit,status:"done"},undefined,new Date("2026-11-23T01:01:00Z")),"已完成");
+  assert.equal(C.validateTask({...task,officialUrl:"http://www.cs.zju.edu.cn/notice.htm"}),true);
+  assert.equal(C.validateTask({...task,officialUrl:"https://mit.edu.evil.test/notice"}),false);
+});
