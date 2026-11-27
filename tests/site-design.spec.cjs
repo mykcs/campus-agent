@@ -156,7 +156,7 @@ test('compiled Astro/Tailwind home shell still works offline',async({browser,bro
     await page.goto('/');
     await expect(page.locator('#resultCount')).toHaveText('1 条');
     await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
-    const cached=await page.evaluate(async()=>{const names=await caches.keys(),cache=await caches.open(names.find(n=>n.startsWith('campus-agent-shell-v4:')));return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+    const cached=await page.evaluate(async()=>{const names=(await caches.keys()).filter(n=>n.startsWith('campus-agent-shell-'));if(names.length!==1)throw Error('Expected exactly one active shell cache');const cache=await caches.open(names[0]);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
     expect(cached).toContain('/index.html');expect(cached.some(p=>p.startsWith('/_astro/')&&p.endsWith('.css'))).toBe(true);
     expect(cached.some(p=>p.startsWith('/api/'))).toBe(false);
     await context.setOffline(true);
@@ -270,9 +270,18 @@ for(const width of [1440,440])test("confirmed date roles, missing timezone and d
   await page.locator('#taskForm button[type="submit"]').click();
   await expect(page.locator("#progressCount")).toHaveText("2 项");
   await candidate("材料邮戳").locator("button").click();
+  await expect(page.locator("#taskDueDate")).toHaveValue(deadline);
+  await expect(page.locator("#taskDueTime")).toHaveValue("");
+  await expect(page.locator("#taskZone")).toHaveValue("Asia/Singapore");
+  await expect(page.locator("#taskVerified")).not.toBeChecked();
   await page.locator("#taskVerified").check();
   await page.locator('#taskForm button[type="submit"]').click();
   await expect(page.locator("#progressCount")).toHaveText("3 项");
+  const allTasks=await page.evaluate(()=>JSON.parse(localStorage.getItem("campus-agent:tasks:v1")));
+  expect(allTasks[2].deadlineTime).toBe("");
+  expect(allTasks[2].evidenceRole).toBe("postmark");
+  expect(allTasks[1].evidenceRole).toBe("close");
+  expect(new Set(allTasks.map(t=>t.id)).size).toBe(3);
   await page.reload();
   await page.locator('[data-view="progress"]').click();
   await expect(page.locator("#progressCount")).toHaveText("3 项");

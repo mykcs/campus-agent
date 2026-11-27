@@ -228,6 +228,9 @@
       element("p","candidate-context",e.mayPrefill?"预填仅供核对，仍需确认适用范围和时区。":"不是可直接采用的截止日；请阅读原文后手动填写。"));
   }
   function openDialog({noticeId=null,date="",time="",evidence=null}={}){
+    // Reset native input editors before populating a different task. In WebKit,
+    // clearing an optional time value alone can leave an invalid segmented editor.
+    $("taskForm").reset();
     const select=$("taskNoticeSelect");select.replaceChildren();
     if(!notices.length){
       const option=element("option","","没有可用的官方公告");
