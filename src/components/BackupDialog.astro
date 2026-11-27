@@ -1,0 +1,11 @@
+<dialog id="backupDialog" class="modal task-modal" aria-labelledby="backupTitle">
+  <form id="backupForm" class="modal-content" method="dialog">
+    <div class="modal-heading"><div><div class="eyebrow">LOCAL BACKUP</div><h2 id="backupTitle">恢复任务与关注</h2><p>只读取本机 JSON 备份，不上传文件。备份可能包含个人备注，请勿公开。</p></div><button type="button" id="closeBackup" class="close-button" aria-label="关闭备份恢复">×</button></div>
+    <label class="field">选择备份 JSON<input id="backupFile" type="file" accept=".json,application/json" required></label>
+    <label class="field">导入方式<select id="backupMode"><option value="merge">合并（保留本机冲突项）</option><option value="replace">替换全部本机任务与关注</option></select></label>
+    <p id="backupPreview" class="help-text" role="status">选择备份文件后先预览。</p>
+    <label class="task-confirm"><input type="checkbox" id="backupConfirmed" required><span>我已阅读预览，同意所选导入方式；替换会删除未保存在备份中的本机记录。</span></label>
+    <p id="backupFeedback" class="form-feedback" role="status"></p>
+    <div class="modal-actions"><button id="applyBackup" type="submit" class="primary-button" disabled>确认导入</button></div>
+  </form>
+</dialog>
