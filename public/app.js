@@ -6,7 +6,8 @@ const Sources = window.CampusSources;
 const TOPICS = [
   {id:"scholarships",label:"奖学金与资助",desc:"包含已接入学院之外的公开奖助公告"},
   {id:"admissions",label:"招生与申请",desc:"博士、硕士、推免等公开招生消息"},
-  {id:"teaching",label:"课程与教学",desc:"已接入来源中的课程、教学事项"}
+  {id:"teaching",label:"课程与教学",desc:"已接入来源中的课程、教学事项"},
+  {id:"activities",label:"校园活动",desc:"已收录的公开讲座、活动、竞赛等线索；仍需阅读原文核对"}
 ];
 const PRESETS = {
   kimi:"https://api.moonshot.ai/v1",
@@ -54,15 +55,7 @@ function officialLink(text,url,cls){
 }
 function formatDay(value){return CampusDisplay.sourceDay(value);}
 function freshnessTime(value){return CampusDisplay.instant(value);}
-function topicIds(item){
-  if(Array.isArray(item.topics))return item.topics.filter(x=>TOPICS.some(t=>t.id===x));
-  const title=String(item.title||"");
-  const tags=[];
-  if(/奖学金|奖助|助学金|资助|评奖/.test(title))tags.push("scholarships");
-  if(/博士|硕士|招生|推免|申请考核|夏令营/.test(title))tags.push("admissions");
-  if(/课程|教学|调课|培养/.test(title))tags.push("teaching");
-  return tags;
-}
+function topicIds(item){return Sources.topicIds(item);}
 function departmentId(item){return Sources.departmentId(item);}
 function departmentList(){return Sources.departmentList(state.snapshot);}
 function isFollowed(item){return Sources.isFollowed(item,state.follows,topicIds(item));}
@@ -146,7 +139,7 @@ function visibleNotices(){
 function renderCategories(){
   const area=$("categoryFilters");area.replaceChildren();
   const options=[
-    ["all","全部类别"],["admissions","招生申请"],["scholarships","奖学金"],["teaching","课程教学"],["other","其他"]
+    ["all","全部类别"],["admissions","招生申请"],["scholarships","奖学金"],["teaching","课程教学"],["activities","校园活动"],["other","其他"]
   ];
   options.forEach(([value,label])=>{
     const b=element("button","category-pill"+(state.category===value?" selected":""),label);
@@ -342,6 +335,7 @@ function searchRank(item,question){
   tokens.forEach(t=>{if(text.includes(t))rank+=9;if(excerpt.includes(t))rank+=2;});
   if(q.includes("博士")&&text.includes("博士"))rank+=8;
   if(q.includes("奖学金")&&topicIds(item).includes("scholarships"))rank+=8;
+  if(/活动|讲座|竞赛|workshop|seminar|event/i.test(q)&&topicIds(item).includes("activities"))rank+=8;
   return rank;
 }
 function relevant(question){

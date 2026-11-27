@@ -30,3 +30,14 @@ test("mixed school department and topic union with canonical deduplication",()=>
   assert.deepEqual(rows.filter(n=>C.isFollowed(n,{schools:["mit"],departments:[],topics:[]},n.topics)).map(n=>n.id),["m"]);
   assert.equal(C.departmentId({...m,department_id:"zju-ai"}),"");
 });
+
+test("stable activities topic, union, legacy fallback and unknown labels",()=>{
+  assert.deepEqual(C.TOPIC_IDS,["scholarships","admissions","teaching","activities"]);
+  assert.deepEqual(C.topicIds({topics:["activities","scholarships","activities","unknown"]}),["activities","scholarships"]);
+  assert.deepEqual(C.topicIds({title:"Graduate funding workshop and course planning"}),["scholarships","teaching","activities"]);
+  assert.deepEqual(C.topicIds({title:"博士招生夏令营奖学金"}),["scholarships","admissions","activities"]);
+  assert.deepEqual(C.topicIds({title:"Campus event",topics:[]}),[]);
+  assert.deepEqual(C.topicIds({title:"Administrative update"}),[]);
+  const a={...m,topics:["activities","scholarships"]};
+  assert.ok(C.isFollowed(a,{schools:[],departments:["zju-ai"],topics:["activities"]},C.topicIds(a)));
+});

@@ -10,6 +10,17 @@
     {id:"mit",label:"MIT",domain:"mit.edu",icon:"M"},
     {id:"tsinghua",label:"清华大学",domain:"tsinghua.edu.cn",icon:"T"}
   ];
+  const TOPIC_IDS=Object.freeze(["scholarships","admissions","teaching","activities"]);
+  function topicIds(item){
+    if(Array.isArray(item?.topics))return [...new Set(item.topics.filter(x=>TOPIC_IDS.includes(x)))];
+    // Legacy notices may lack a topic array. Do not reinterpret an explicit empty array.
+    const title=String(item?.title||""),tags=[];
+    if(/奖学金|奖助|助学金|资助|评奖|\b(?:fellowships?|scholarships?|financial aid|student funding|graduate funding)\b/i.test(title))tags.push("scholarships");
+    if(/博士|硕士|招生|推免|申请考核|夏令营|\b(?:admissions?|doctoral application|graduate application)\b/i.test(title))tags.push("admissions");
+    if(/课程|教学|调课|培养|考试安排|\b(?:courses?|coursework|teaching|class schedule|exam schedule)\b/i.test(title))tags.push("teaching");
+    if(/活动|讲座|论坛|研讨会|交流会|报告会|学术报告|开放日|夏令营|冬令营|竞赛|比赛|运动会|体育节|志愿服务|工作坊|\b(?:workshops?|seminars?|lectures?|symposi(?:um|a)|forums?|open house|summer camp|winter camp|competitions?|volunteer event|campus event|student event)\b/i.test(title))tags.push("activities");
+    return tags;
+  }
   const BASE_DEPARTMENTS=[
     {id:"zju-ai",label:"人工智能学院",source:"zju-ai-admissions",desc:"学院招生公告，直接来自官网",school:"zju"},
     {id:"zju-cs",label:"计算机科学与技术学院",source:"zju-cs-search",desc:"学校公开搜索索引 · 部分覆盖",school:"zju"},
@@ -91,5 +102,5 @@
   function statusLabel(status){
     return ({ok:"已接入",partial:"部分覆盖",error:"采集异常",degraded:"采集异常",pending:"待接入"})[status]||"待接入";
   }
-  return {SCHOOLS,BASE_DEPARTMENTS,officialURL,schoolForURL,validId,departmentId,notices,sourceList,departmentList,isFollowed,statusLabel};
+  return {SCHOOLS,BASE_DEPARTMENTS,TOPIC_IDS,topicIds,officialURL,schoolForURL,validId,departmentId,notices,sourceList,departmentList,isFollowed,statusLabel};
 });

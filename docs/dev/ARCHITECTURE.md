@@ -60,3 +60,7 @@ Campus Agent Web/PWA（Vercel Hobby）
 这里不开发 Apple/Google Calendar 的替代会议、日程邀请、会议室或双向个人日历同步功能；不自动填写申请材料或执行校园登录；不自动把模型解析出的候选日期变成已确认任务。
 
 下次迭代的分界点见 [产品愿望](../wish/PRODUCT-WISHES.md)。
+
+## Topic interoperability (WP10 / A10)
+
+The data repository owns title-derived multi-label metadata; the reader uses `public/source-core.js` TOPIC_IDS/topicIds for filtering. Existing scholarships/admissions/teaching and new activities IDs are stable; empty arrays remain unclassified. Selecting an activity topic is an explicit union with school and department follows, not a global default subscription. International newsletter and funding reference titles do not assert open event or application status. The push candidate must reuse the same allowlist before activating activity alerts.
